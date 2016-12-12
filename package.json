@@ -28,7 +28,8 @@
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Petroochio/lathe-3D/issues"
-  },  "dependencies": {
+  },
+  "dependencies": {
     "@cycle/base": "^4.1.1",
     "@cycle/core": "^7.0.0",
     "@cycle/dom": "12.1.0",
@@ -37,6 +38,7 @@
     "aframe": "^0.3.2",
     "most": "^1.0.4",
     "ramda": "^0.22.1",
+    "three": "^0.82.1",
     "xstream": "^6.2.0"
   },
   "devDependencies": {

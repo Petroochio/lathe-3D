@@ -18,7 +18,8 @@ function view(state$) {
       [
         h('a-scene',
           [
-            h('a-box', { attrs: { position: '1 1 -5', color: '#ff0000' } }),
+            // h('a-box', { attrs: { position: '0 0 -5', color: '#ff0000' } }),
+            h('a-entity', { attrs: { material: 'color: #ff0000;', geometry: 'primitive: editable;', position: '0 0 -5' } }),
             h('a-sky', { attrs: { color: '#000022' } }),
           ]
         ),
@@ -33,7 +34,7 @@ const Lathe = (sources) => {
   const action$ = intent(sources);
   const state$ = model(action$);
   const vdom$ = view(state$);
-  vdom$.forEach(x => console.info(x));
+  // vdom$.forEach(x => console.info(x));
 
   const sinks = {
     DOM: vdom$,

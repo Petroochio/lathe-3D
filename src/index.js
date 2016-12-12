@@ -2,7 +2,7 @@
 import 'aframe';
 import Cycle from '@cycle/most-run';
 import { makeDOMDriver } from '@cycle/dom';
-
+import './aframe-addons';
 // Main Component
 import App from './app';
 
