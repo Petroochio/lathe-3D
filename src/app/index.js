@@ -12,7 +12,6 @@ function model(actions) {
 }
 
 function view(state$) {
-  console.log('?');
   return most.of(
     h('section',
       [

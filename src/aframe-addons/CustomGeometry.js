@@ -1,10 +1,18 @@
 // Based on custom geometry example from AFRAME docs
 import AFRAME from 'aframe';
 import * as THREE from 'three';
+import { map } from 'ramda';
+
+const parseMap = map(x => parseInt(x, 10));
 
 function makeVert(vertex) {
-  const points = vertex.split(' ').map(x => parseInt(x, 10));
+  const points = parseMap(vertex.split(' '));
   return new THREE.Vector3(...points);
+}
+
+function makeFace(face) {
+  const points = parseMap(face.split(' '));
+  return new THREE.Face3(...points);
 }
 
 AFRAME.registerGeometry('editable', {
@@ -21,6 +29,22 @@ AFRAME.registerGeometry('editable', {
         '-1 -1 1',
       ],
     },
+    faces: {
+      default: [
+        '0 2 1',
+        '2 3 1',
+        '4 6 5',
+        '6 7 5',
+        '4 5 1',
+        '5 0 1',
+        '7 6 2',
+        '6 3 2',
+        '5 7 0',
+        '7 2 0',
+        '1 3 4',
+        '3 6 4',
+      ],
+    },
     color: {
       default: '#ffffff',
     },
@@ -30,20 +54,7 @@ AFRAME.registerGeometry('editable', {
     const geometry = new THREE.Geometry();
     const verts = data.vertices.map(makeVert);
     // const triangles = THREE.ShapeUtils.triangulateShape(verts, []); // might be useful
-    const faces = [
-      new THREE.Face3(0, 2, 1),
-      new THREE.Face3(2, 3, 1),
-      new THREE.Face3(4, 6, 5),
-      new THREE.Face3(6, 7, 5),
-      new THREE.Face3(4, 5, 1),
-      new THREE.Face3(5, 0, 1),
-      new THREE.Face3(7, 6, 2),
-      new THREE.Face3(6, 3, 2),
-      new THREE.Face3(5, 7, 0),
-      new THREE.Face3(7, 2, 0),
-      new THREE.Face3(1, 3, 4),
-      new THREE.Face3(3, 6, 4),
-    ];
+    const faces = data.faces.map(makeFace);
 
     geometry.vertices = verts;
     geometry.faces = faces;
