@@ -2,6 +2,7 @@ import * as most from 'most';
 import { h } from '@cycle/dom';
 
 // Components
+import ModelEntity from './ModelEntity';
 
 function intent(sources) {
   return most.of({});
@@ -12,13 +13,12 @@ function model(actions) {
 }
 
 function view(state$) {
-  return most.of(
+  return state$.map(modelEntity =>
     h('section',
       [
         h('a-scene',
           [
-            // h('a-box', { attrs: { position: '0 0 -5', color: '#ff0000' } }),
-            h('a-entity', { attrs: { material: 'color: #ff0000;', geometry: 'primitive: editable;', position: '0 0 -5' } }),
+            modelEntity,
             h('a-sky', { attrs: { color: '#000022' } }),
           ]
         ),
@@ -30,10 +30,10 @@ function view(state$) {
 const Lathe = (sources) => {
   const { DOM } = sources;
 
-  const action$ = intent(sources);
-  const state$ = model(action$);
-  const vdom$ = view(state$);
-  // vdom$.forEach(x => console.info(x));
+  // const action$ = intent(sources);
+  // const state$ = model(action$);
+  const ModelEntity$ = ModelEntity().vdom$;
+  const vdom$ = view(ModelEntity$);
 
   const sinks = {
     DOM: vdom$,
