@@ -16,24 +16,13 @@ const faces = [
   '3 6 4',
 ];
 
-const verts = [
-  '1 1 1',
-  '1 1 -1',
-  '1 -1 1',
-  '1 -1 -1',
-  '-1 1 -1',
-  '-1 1 1',
-  '-1 -1 -1',
-  '-1 -1 1',
-];
-
 function view(state$) {
-  return most.of(
+  return state$.map(props =>
     h('a-entity',
       {
         attrs: {
           material: 'color: #ff0000;',
-          geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${verts.join(',')};`,
+          geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${props.verts.join(',')};`,
           position: '0 0 -5',
         },
       }
@@ -43,7 +32,7 @@ function view(state$) {
 
 function ModelEntity(sources) {
   const sinks = {
-    vdom$: view(),
+    vdom$: view(sources.prop$),
   };
   return sinks;
 }
