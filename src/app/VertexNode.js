@@ -7,7 +7,7 @@ function view(state$) {
       {
         attrs: {
           color: '#00ff00',
-          radius: '0.1',
+          radius: '0.05',
           position: props.position,
         },
       }
