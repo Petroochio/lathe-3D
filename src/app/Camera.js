@@ -1,39 +1,68 @@
 import { h } from '@cycle/dom';
 import * as most from 'most';
+import { T, F, nth } from 'ramda';
 
 function renderCam(newAttr) {
   const defaultAttr = { camera: true, 'mouse-cursor': true };
   return h('a-entity', { attrs: { ...defaultAttr, ...newAttr } });
 }
 
+function calcRotation(oldRot, deltaRot) {
+  const newRot = {
+    xdeg: oldRot.xdeg - (deltaRot.dx / 10),
+    ydeg: oldRot.ydeg - (deltaRot.dy / 10),
+  };
+  return newRot;
+}
+
 function intent(sources) {
-  const mouseMove$ = sources.DOM
-    .select('body')
-    .events('mousemove');
+  const isMouseDown$ = sources.mouseDown$
+    .map(T)
+    .merge(sources.mouseUp$.map(F))
+    .merge(sources.mouseLeave$.map(F));
+
+  const mouseDrag$ = isMouseDown$
+    .combine((...streams) => streams, sources.mouseMove$)
+    .filter(([isDown, _]) => isDown)
+    .map(nth(1));
 
   const intents = {
-    mouseMove$,
+    mouseDrag$,
   };
   return intents;
 }
 
-function model(intents) {
-  return most.of({});
+function model(actions) {
+  const rotation$ = actions
+    .mouseDrag$
+    .scan(calcRotation, { xdeg: 0, ydeg: 0 });
+
+  const state = {
+    rotation$,
+  };
+  return state;
 }
 
 function view(state$) {
-  return state$.map(props =>
+  return state$.map(rotation =>
     h(
-      'a-entity.camera-container',
-      { attrs: { rotation: props.rotation } },
-      [renderCam({ position: '0 0 5' })]
+      'a-entity#camera-x-container',
+      { attrs: { rotation: `0 ${rotation.xdeg} 0` } },
+      [
+        h(
+          'a-entity#camera-y-container',
+          { attrs: { rotation: `${rotation.ydeg} 0 0` } },
+          [renderCam({ position: '0 0 5' })]
+        ),
+      ]
     )
   );
 }
 
 function Camera(sources) {
-  const state$ = most.of({ rotation: '0 45 0' });
-  const vdom$ = view(state$);
+  const actions = intent(sources);
+  const state = model(actions);
+  const vdom$ = view(state.rotation$);
 
   const sinks = {
     vdom$,

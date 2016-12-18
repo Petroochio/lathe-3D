@@ -41,7 +41,7 @@ function view(state$, vertecies$) {
   return state$.combine(renderMesh, vertecies$);
 }
 
-function ModelEntity(sources, initialVerts) {
+function MeshEntity(sources, initialVerts) {
   const vertexNodes = initialVerts
     .map(v => isolate(VertexNode)(sources, v));
 
@@ -61,4 +61,4 @@ function ModelEntity(sources, initialVerts) {
   return sinks;
 }
 
-export default ModelEntity;
+export default MeshEntity;
