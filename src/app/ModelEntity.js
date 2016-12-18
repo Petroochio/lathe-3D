@@ -28,9 +28,9 @@ function renderMesh(state, vertexNodes) {
   return h('a-entity',
     {
       attrs: {
-        material: 'color: #ff0000;',
+        material: 'color: #ff0000; flatShading: true;',
         geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${state.verts.join(',')};`,
-        position: '0 0 -5',
+        position: '0 0 0',
       },
     },
     vertexNodes,

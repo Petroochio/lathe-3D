@@ -5,6 +5,7 @@ import { prop, map } from 'ramda';
 
 // Components
 import ModelEntity from './ModelEntity';
+import Camera from './Camera';
 
 const sky = h('a-sky', { attrs: { color: '#000022' } });
 
@@ -21,10 +22,10 @@ function model(actions) {
 }
 
 function view(state$) {
-  return state$.map(mesh =>
+  return state$.map(entities =>
     h('section',
       [
-        h('a-scene', [mesh, sky]),
+        h('a-scene', [...entities, sky]),
       ]
     )
   );
@@ -47,9 +48,10 @@ const Lathe = (sources) => {
   // const action$ = intent(sources);
   // const state$ = model();
   const ModelEntity$ = isolate(ModelEntity)(sources, initialVerts).vdom$;
-  // const entities$ = most.combineArray(combineAllStreams, [...vertexDoms, ModelEntity$]);
+  const camera$ = Camera(sources).vdom$;
+  const entities$ = most.combineArray(combineAllStreams, [camera$, ModelEntity$]);
 
-  const vdom$ = view(ModelEntity$);
+  const vdom$ = view(entities$);
 
   const sinks = {
     DOM: vdom$,
