@@ -6,7 +6,10 @@ function view(state$) {
     h('a-sphere.vertex-node',
       {
         attrs: {
-          color: '#00ff00',
+          material: 'flatShading: true;',
+          'segments-height': '10',
+          'segments-width': '10',
+          color: '#aaaaff',
           radius: '0.05',
           position: props.position,
         },
