@@ -1,12 +1,13 @@
 import * as most from 'most';
-import { h } from '@cycle/dom';
+import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 
+import { aScene, aSky } from './utils/AframeHyperscript';
 // Components
 import MeshEntity from './MeshEntity';
 import Camera from './Camera';
 
-const sky = h('a-sky', { attrs: { color: '#000022' } });
+const sky = aSky({ attrs: { color: '#000022' } });
 
 function combineAllStreams(...values) {
   return values;
@@ -45,10 +46,9 @@ function model(actions) {
 
 function view(state$) {
   return state$.map(entities =>
-    h('section#editor',
-      [
-        h('a-scene', [...entities, sky]),
-      ]
+    section(
+      '#editor',
+      [aScene([...entities, sky])]
     )
   );
 }

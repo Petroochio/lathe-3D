@@ -1,8 +1,8 @@
-import { h } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import { prop, map } from 'ramda';
 import * as most from 'most';
 
+import { aEntity } from './utils/AframeHyperscript';
 import VertexNode from './VertexNode';
 
 function combineAllStreams(...values) {
@@ -25,7 +25,7 @@ const faces = [
 ];
 
 function renderMesh(state, vertexNodes) {
-  return h('a-entity',
+  return aEntity(
     {
       attrs: {
         material: 'color: #222222; flatShading: true;',

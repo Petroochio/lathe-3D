@@ -1,9 +1,10 @@
-import { h } from '@cycle/dom';
 import * as most from 'most';
+import { aSphere } from './utils/AframeHyperscript';
 
 function view(state$) {
   return state$.map(props =>
-    h('a-sphere.vertex-node',
+    aSphere(
+      '.vertex-node',
       {
         attrs: {
           material: 'flatShading: true;',
@@ -18,8 +19,8 @@ function view(state$) {
   );
 }
 
-function VertexNode(sources, initialPosition) {
-  const state$ = most.of({ position: initialPosition });
+function VertexNode(sources, position) {
+  const state$ = most.of({ position });
   const vdom$ = view(state$);
 
   const sinks = {

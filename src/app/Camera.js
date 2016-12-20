@@ -1,6 +1,8 @@
 import { h } from '@cycle/dom';
 import { T, F, nth, pick, prop, clamp } from 'ramda';
 
+import { aEntity } from './utils/AframeHyperscript';
+
 function renderCam(newAttr) {
   const defaultAttr = { camera: true, 'mouse-cursor': true };
   return h('a-entity', { attrs: { ...defaultAttr, ...newAttr } });
@@ -60,12 +62,12 @@ function view(state) {
     .combine((rot, zoom) => ({ rot, zoom }), state.zoom$);
 
   return state$.map(s =>
-    h(
-      'a-entity#camera-x-container',
+    aEntity(
+      '#camera-x-container',
       { attrs: { rotation: `0 ${s.rot.xdeg} 0` } },
       [
-        h(
-          'a-entity#camera-y-container',
+        aEntity(
+          '#camera-y-container',
           { attrs: { rotation: `${s.rot.ydeg} 0 0` } },
           [renderCam({ position: `0 0 ${s.zoom}` })]
         ),
