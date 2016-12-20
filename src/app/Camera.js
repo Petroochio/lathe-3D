@@ -1,6 +1,5 @@
 import { h } from '@cycle/dom';
-import * as most from 'most';
-import { T, F, nth } from 'ramda';
+import { T, F, nth, pick, prop, clamp } from 'ramda';
 
 function renderCam(newAttr) {
   const defaultAttr = { camera: true, 'mouse-cursor': true };
@@ -16,18 +15,24 @@ function calcRotation(oldRot, deltaRot) {
 }
 
 function intent(sources) {
-  const isMouseDown$ = sources.mouseDown$
-    .map(T)
-    .merge(sources.mouseUp$.map(F))
-    .merge(sources.mouseLeave$.map(F));
+  const isMouseDown$ = sources
+    .mouseDown$
+    .map(T) // Map to True
+    .merge(sources.mouseUp$.map(F)) // Map to False
+    .merge(sources.mouseLeave$.map(F)); // Map to False
 
   const mouseDrag$ = isMouseDown$
     .combine((...streams) => streams, sources.mouseMove$)
-    .filter(([isDown, _]) => isDown)
+    .filter(([isDown]) => isDown)
     .map(nth(1));
+
+  const mouseWheel$ = sources
+    .mouseWheel$
+    .map(pick(['deltaX', 'deltaY']));
 
   const intents = {
     mouseDrag$,
+    mouseWheel$,
   };
   return intents;
 }
@@ -37,22 +42,32 @@ function model(actions) {
     .mouseDrag$
     .scan(calcRotation, { xdeg: 0, ydeg: 0 });
 
+  const zoom$ = actions
+    .mouseWheel$
+    .map(prop('deltaY'))
+    .scan((zoom, dZoom) => clamp(2, Infinity)(zoom - (dZoom / 50)), 5);
+
   const state = {
     rotation$,
+    zoom$,
   };
   return state;
 }
 
-function view(state$) {
-  return state$.map(rotation =>
+function view(state) {
+  const state$ = state
+    .rotation$
+    .combine((rot, zoom) => ({ rot, zoom }), state.zoom$);
+
+  return state$.map(s =>
     h(
       'a-entity#camera-x-container',
-      { attrs: { rotation: `0 ${rotation.xdeg} 0` } },
+      { attrs: { rotation: `0 ${s.rot.xdeg} 0` } },
       [
         h(
           'a-entity#camera-y-container',
-          { attrs: { rotation: `${rotation.ydeg} 0 0` } },
-          [renderCam({ position: '0 0 5' })]
+          { attrs: { rotation: `${s.rot.ydeg} 0 0` } },
+          [renderCam({ position: `0 0 ${s.zoom}` })]
         ),
       ]
     )
@@ -62,7 +77,7 @@ function view(state$) {
 function Camera(sources) {
   const actions = intent(sources);
   const state = model(actions);
-  const vdom$ = view(state.rotation$);
+  const vdom$ = view(state);
 
   const sinks = {
     vdom$,

@@ -1,7 +1,6 @@
 import * as most from 'most';
 import { h } from '@cycle/dom';
 import isolate from '@cycle/isolate';
-import { prop, map, T, F } from 'ramda';
 
 // Components
 import MeshEntity from './MeshEntity';
@@ -25,6 +24,7 @@ function intent(sources) {
   const mouseUp$ = editorDOM.events('mouseup');
   const mouseLeave$ = editorDOM.events('mouseleave');
   const mouseDown$ = editorDOM.events('mousedown');
+  const mouseWheel$ = editorDOM.events('mousewheel');
   const mouseMove$ = editorDOM
     .events('mousemove')
     .map(mouseMoveProps);
@@ -34,6 +34,7 @@ function intent(sources) {
     mouseDown$,
     mouseMove$,
     mouseLeave$,
+    mouseWheel$,
   };
   return intents;
 }
