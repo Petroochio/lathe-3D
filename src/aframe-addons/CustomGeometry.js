@@ -3,7 +3,7 @@ import AFRAME from 'aframe';
 import * as THREE from 'three';
 import { map } from 'ramda';
 
-const parseMap = map(x => parseInt(x, 10));
+const parseMap = map(x => parseFloat(x, 10));
 
 function makeVert(vertex) {
   const points = parseMap(vertex.split(' '));
