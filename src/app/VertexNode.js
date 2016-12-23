@@ -1,6 +1,10 @@
 import * as most from 'most';
 import { aSphere } from './utils/AframeHyperscript';
 
+function model(position) {
+  return most.of({ position });
+}
+
 function view(state$) {
   return state$.map(props =>
     aSphere(
@@ -20,7 +24,7 @@ function view(state$) {
 }
 
 function VertexNode(sources, position) {
-  const state$ = most.of({ position });
+  const state$ = model(position);
   const vdom$ = view(state$);
 
   const sinks = {

@@ -8,6 +8,16 @@ import MeshEntity from './MeshEntity';
 import Camera from './Camera';
 
 const sky = aSky({ attrs: { color: '#000022' } });
+const initialVerts = [
+  '1 1 1',
+  '1 1 -1',
+  '1 -1 1',
+  '1 -1 -1',
+  '-1 1 -1',
+  '-1 1 1',
+  '-1 -1 -1',
+  '-1 -1 1',
+];
 
 function combineAllStreams(...values) {
   return values;
@@ -26,9 +36,7 @@ function intent(sources) {
   const mouseLeave$ = editorDOM.events('mouseleave');
   const mouseDown$ = editorDOM.events('mousedown');
   const mouseWheel$ = editorDOM.events('mousewheel');
-  const mouseMove$ = editorDOM
-    .events('mousemove')
-    .map(mouseMoveProps);
+  const mouseMove$ = editorDOM.events('mousemove').map(mouseMoveProps);
 
   const intents = {
     mouseUp$,
@@ -40,8 +48,15 @@ function intent(sources) {
   return intents;
 }
 
-function model(actions) {
-  return most.of({});
+function model(sources, actions) {
+  const camera$ = Camera({ ...sources, ...actions }).vdom$;
+  const MeshEntity$ = isolate(MeshEntity)({ initialVerts }, sources).vdom$;
+  const entities$ = most.combineArray(combineAllStreams, [camera$, MeshEntity$]);
+
+  const state = {
+    entities$,
+  };
+  return state;
 }
 
 function view(state$) {
@@ -54,27 +69,9 @@ function view(state$) {
 }
 
 const Lathe = (sources) => {
-  const { DOM } = sources;
-
-  const initialVerts = [
-    '1 1 1',
-    '1 1 -1',
-    '1 -1 1',
-    '1 -1 -1',
-    '-1 1 -1',
-    '-1 1 1',
-    '-1 -1 -1',
-    '-1 -1 1',
-  ];
-
   const actions = intent(sources);
-  // const state$ = model();
-  // This all goes in the model
-  const camera$ = Camera({ ...sources, ...actions }).vdom$;
-  const MeshEntity$ = isolate(MeshEntity)(sources, initialVerts).vdom$;
-  const entities$ = most.combineArray(combineAllStreams, [camera$, MeshEntity$]);
-
-  const vdom$ = view(entities$);
+  const state = model(sources, actions);
+  const vdom$ = view(state.entities$);
 
   const sinks = {
     DOM: vdom$,

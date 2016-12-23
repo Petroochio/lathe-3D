@@ -37,24 +37,36 @@ function renderMesh(state, vertexNodes) {
   );
 }
 
-function view(state$, vertecies$) {
-  return state$.combine(renderMesh, vertecies$);
-}
-
-function MeshEntity(sources, initialVerts) {
-  const vertexNodes = initialVerts
+function model(sources) {
+  const { props, DOM } = sources;
+  const vertexNodes = props
+    .initialVerts
     .map(v => isolate(VertexNode)(sources, v));
 
   const vertexDoms = vertexNodes.map(prop('vdom$'));
   const vertexStates = vertexNodes.map(prop('state$'));
 
-  const vertexState$ = most.combineArray(combineAllStreams, vertexStates)
+  const vertexState$ = most
+    .combineArray(combineAllStreams, vertexStates)
     .map(map(prop('position')))
     .map(verts => ({ verts }));
 
   const vertexDom$ = most.combineArray(combineAllStreams, vertexDoms);
+  const state = {
+    vertexState$,
+    vertexDom$,
+  };
+  return state;
+}
 
-  const vdom$ = view(vertexState$, vertexDom$);
+function view(state) {
+  return state.vertexState$.combine(renderMesh, state.vertexDom$);
+}
+
+// Add some sweet flow type checking for props :3
+function MeshEntity(sources) {
+  const state = model(sources);
+  const vdom$ = view(state);
   const sinks = {
     vdom$,
   };
