@@ -39,9 +39,16 @@ function renderMesh(state, vertexNodes) {
 
 function model(sources) {
   const { props, DOM } = sources;
+  // TODO Make props a stream
   const vertexNodes = props
     .initialVerts
-    .map(v => isolate(VertexNode)(sources, v));
+    .map((position) => {
+      const vertSources = {
+        DOM,
+        prop$: most.of({ position }),
+      };
+      return isolate(VertexNode)(vertSources);
+    });
 
   const vertexDoms = vertexNodes.map(prop('vdom$'));
   const vertexStates = vertexNodes.map(prop('state$'));
