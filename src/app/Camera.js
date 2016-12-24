@@ -4,7 +4,7 @@ import { T, F, nth, pick, prop, clamp } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 function renderCam(newAttr) {
-  const defaultAttr = { camera: true, 'mouse-cursor': true };
+  const defaultAttr = { camera: true, 'mouse-events': true };
   return h('a-entity', { attrs: { ...defaultAttr, ...newAttr } });
 }
 
