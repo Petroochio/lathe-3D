@@ -1,3 +1,4 @@
+// TODO: Add mouse enter
 // Component for aframe cameras that emits mouse events on aframe tags, and do it cycle style
 import AFRAME from 'aframe';
 import { Raycaster, Vector2 } from 'three';
@@ -36,7 +37,6 @@ function setRaycastFromCamera(raycaster, camera, vector) {
 
 function intersectFunc(element, vector) {
   const sceneObj3D = element.sceneEl.object3D;
-  const { scene } = sceneObj3D;
   const camera = element.getObject3D('camera');
   const allChildren = flatten(getEntityChildren(sceneObj3D));
   const intersects = setRaycastFromCamera(sharedRaycaster, camera, vector)
@@ -95,12 +95,31 @@ function intent(sources) {
 }
 
 function model(actions, element) {
-  const { mouseDown$ } = actions;
+  const { mouseDown$, mouseMove$, mouseUp$, mouseOut$ } = actions;
   mouseDown$
   .map(setMouseVector)
   .map(getIntersect(element))
   .filter(pipe(isNil, not))
   .forEach(emitEvent('mousedown', element));
+
+  // TODO Needs to be altered to get delta?
+  mouseMove$
+  .map(setMouseVector)
+  .map(getIntersect(element))
+  .filter(pipe(isNil, not))
+  .forEach(emitEvent('mousemove', element));
+
+  mouseUp$
+  .map(setMouseVector)
+  .map(getIntersect(element))
+  .filter(pipe(isNil, not))
+  .forEach(emitEvent('mouseup', element));
+
+  mouseOut$
+  .map(setMouseVector)
+  .map(getIntersect(element))
+  .filter(pipe(isNil, not))
+  .forEach(emitEvent('mouseout', element));
 }
 
 AFRAME.registerComponent('mouse-events',

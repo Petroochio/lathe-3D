@@ -21,8 +21,24 @@ function view(state$) {
 
 function VertexNode(sources) {
   const state$ = sources.prop$;
-  sources.DOM.select('.vertex-node')
+  const node = sources.DOM.select('.vertex-node');
+  node
   .events('mousedown')
+  .combine((_, pos) => pos, state$)
+  .forEach(x => console.info(x));
+
+  node
+  .events('mouseup')
+  .combine((_, pos) => pos, state$)
+  .forEach(x => console.info(x));
+
+  node
+  .events('mouseout')
+  .combine((_, pos) => pos, state$)
+  .forEach(x => console.info(x));
+
+  node
+  .events('mousemove')
   .combine((_, pos) => pos, state$)
   .forEach(x => console.info(x));
 
