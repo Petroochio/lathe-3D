@@ -21,11 +21,16 @@ function view(state$) {
 
 function VertexNode(sources) {
   const state$ = sources.prop$;
+  sources.DOM.select('.vertex-node')
+  .events('mousedown')
+  .combine((_, pos) => pos, state$)
+  .forEach(x => console.info(x));
+
   const vdom$ = view(state$);
 
   const sinks = {
-    vdom$,
-    state$,
+    DOM: vdom$,
+    state: state$,
   };
   return sinks;
 }

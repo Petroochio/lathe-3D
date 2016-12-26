@@ -82,7 +82,7 @@ function Camera(sources) {
   const vdom$ = view(state);
 
   const sinks = {
-    vdom$,
+    DOM: vdom$,
   };
   return sinks;
 }

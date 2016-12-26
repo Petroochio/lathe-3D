@@ -49,10 +49,14 @@ function intersectFunc(element, vector) {
 }
 const getIntersect = curry(intersectFunc);
 
-function eventFunc(evt, base, target) {
-  console.log(target, evt);
-  base.emit(evt, { target });
-  target.emit(evt);
+function eventFunc(eventName, base, target) {
+  const evt = new MouseEvent(eventName, {
+    view: window,
+    bubbles: true,
+    cancelable: true,
+    trusted: true,
+  });
+  target.dispatchEvent(evt);
 }
 const emitEvent = curry(eventFunc);
 

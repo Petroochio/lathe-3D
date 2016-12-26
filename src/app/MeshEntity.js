@@ -26,6 +26,7 @@ const faces = [
 
 function renderMesh(state, vertexNodes) {
   return aEntity(
+    '.edit-mesh',
     {
       attrs: {
         material: 'color: #222222; flatShading: true;',
@@ -50,8 +51,8 @@ function model(sources) {
       return isolate(VertexNode)(vertSources);
     });
 
-  const vertexDoms = vertexNodes.map(prop('vdom$'));
-  const vertexStates = vertexNodes.map(prop('state$'));
+  const vertexDoms = vertexNodes.map(prop('DOM'));
+  const vertexStates = vertexNodes.map(prop('state'));
 
   const vertexState$ = most
     .combineArray(combineAllStreams, vertexStates)
@@ -75,7 +76,7 @@ function MeshEntity(sources) {
   const state = model(sources);
   const vdom$ = view(state);
   const sinks = {
-    vdom$,
+    DOM: vdom$,
   };
   return sinks;
 }

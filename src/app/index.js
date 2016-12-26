@@ -54,7 +54,7 @@ function model(sources, actions) {
   const meshProps = { initialVerts };
   const mesh = isolate(MeshEntity)({ DOM, props: meshProps });
 
-  const entities$ = most.combineArray(combineAllStreams, [camera.vdom$, mesh.vdom$]);
+  const entities$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM]);
 
   const state = {
     entities$,
