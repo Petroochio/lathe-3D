@@ -50,9 +50,10 @@ function intent(sources) {
 
 function model(sources, actions) {
   const { DOM } = sources;
+  const { mouseDown$ } = actions;
   const camera = Camera({ DOM, ...actions });
   const meshProps = { initialVerts };
-  const mesh = isolate(MeshEntity)({ DOM, props: meshProps });
+  const mesh = isolate(MeshEntity)({ DOM, rootMouseDown$: mouseDown$, props: meshProps });
 
   const entities$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM]);
 

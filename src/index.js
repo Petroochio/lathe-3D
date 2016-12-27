@@ -6,7 +6,6 @@ import './aframe-addons';
 // Main Component
 import App from './app';
 
-const main = App;
 function makeDrivers() {
   const drivers = {
     DOM: makeDOMDriver('#root'),
@@ -14,4 +13,4 @@ function makeDrivers() {
   return drivers;
 }
 
-window.onload = () => Cycle.run(main, makeDrivers());
+window.onload = () => Cycle.run(App, makeDrivers());

@@ -1,5 +1,32 @@
-import * as most from 'most';
+import { T, F } from 'ramda';
 import { aSphere } from './utils/AframeHyperscript';
+
+function intent(sources) {
+  const { DOM, props, rootMouseDown$ } = sources;
+  const mouseUp$ = DOM.select('.vertex-node').events('mouseup');
+
+  const intents = {
+    rootMouseDown$,
+    mouseUp$,
+    props,
+  };
+  return intents;
+}
+
+function model(actions) {
+  const { mouseUp$, rootMouseDown$, props } = actions;
+  const deselect$ = rootMouseDown$.map(F);
+  const color$ = mouseUp$
+    .map(T)
+    .merge(deselect$)
+    .startWith(false)
+    .map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
+
+
+  const state$ = color$.combine((color, p) => ({ ...p, color }), props);
+
+  return state$;
+}
 
 function view(state$) {
   return state$.map(props =>
@@ -10,7 +37,7 @@ function view(state$) {
           material: 'flatShading: true;',
           'segments-height': '10',
           'segments-width': '10',
-          color: '#aaaaff',
+          color: props.color,
           radius: '0.05',
           position: props.position,
         },
@@ -20,28 +47,8 @@ function view(state$) {
 }
 
 function VertexNode(sources) {
-  const state$ = sources.prop$;
-  const node = sources.DOM.select('.vertex-node');
-  node
-  .events('mousedown')
-  .combine((_, pos) => pos, state$)
-  .forEach(x => console.info(x));
-
-  node
-  .events('mouseup')
-  .combine((_, pos) => pos, state$)
-  .forEach(x => console.info(x));
-
-  node
-  .events('mouseout')
-  .combine((_, pos) => pos, state$)
-  .forEach(x => console.info(x));
-
-  node
-  .events('mousemove')
-  .combine((_, pos) => pos, state$)
-  .forEach(x => console.info(x));
-
+  const actions = intent(sources);
+  const state$ = model(actions);
   const vdom$ = view(state$);
 
   const sinks = {

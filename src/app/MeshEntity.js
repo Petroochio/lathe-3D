@@ -25,12 +25,13 @@ const faces = [
 ];
 
 function renderMesh(state, vertexNodes) {
+  const { verts } = state;
   return aEntity(
     '.edit-mesh',
     {
       attrs: {
         material: 'color: #222222; flatShading: true;',
-        geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${state.verts.join(',')};`,
+        geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${verts.join(',')};`,
         position: '0 0 0',
       },
     },
@@ -39,14 +40,15 @@ function renderMesh(state, vertexNodes) {
 }
 
 function model(sources) {
-  const { props, DOM } = sources;
+  const { props, DOM, rootMouseDown$ } = sources;
   // TODO Make props a stream
   const vertexNodes = props
     .initialVerts
     .map((position) => {
       const vertSources = {
         DOM,
-        prop$: most.of({ position }),
+        rootMouseDown$,
+        props: most.of({ position }),
       };
       return isolate(VertexNode)(vertSources);
     });
