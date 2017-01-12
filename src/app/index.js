@@ -72,7 +72,7 @@ function view(state$) {
   );
 }
 
-const Lathe = (sources) => {
+function Lathe(sources) {
   const actions = intent(sources);
   const state = model(sources, actions);
   const vdom$ = view(state.entities$);
@@ -81,6 +81,6 @@ const Lathe = (sources) => {
     DOM: vdom$,
   };
   return sinks;
-};
+}
 
 export default Lathe;

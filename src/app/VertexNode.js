@@ -1,30 +1,32 @@
 import { T, F } from 'ramda';
 import { aSphere } from './utils/AframeHyperscript';
+import MovementAnchor from './MovementAnchor';
 
 function intent(sources) {
-  const { DOM, props, rootMouseDown$ } = sources;
+  const { DOM, prop$, rootMouseDown$ } = sources;
   const mouseUp$ = DOM.select('.vertex-node').events('mouseup');
 
   const intents = {
     rootMouseDown$,
     mouseUp$,
-    props,
+    prop$,
   };
   return intents;
 }
 
 function model(actions) {
-  const { mouseUp$, rootMouseDown$, props } = actions;
+  const { mouseUp$, rootMouseDown$, prop$ } = actions;
   const deselect$ = rootMouseDown$.map(F);
-  const color$ = mouseUp$
+  const selected$ = mouseUp$
     .map(T)
     .merge(deselect$)
     .startWith(false)
     .map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
 
+  // create movement anchors
+  // const anchor =
 
-  const state$ = color$.combine((color, p) => ({ ...p, color }), props);
-
+  const state$ = selected$.combine((color, p) => ({ ...p, color }), prop$);
   return state$;
 }
 

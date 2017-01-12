@@ -48,7 +48,7 @@ function model(sources) {
       const vertSources = {
         DOM,
         rootMouseDown$,
-        props: most.of({ position }),
+        prop$: most.of({ position }),
       };
       return isolate(VertexNode)(vertSources);
     });
