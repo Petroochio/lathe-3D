@@ -1,6 +1,7 @@
 import isolate from '@cycle/isolate';
 import { prop, map } from 'ramda';
 import * as most from 'most';
+// import MovementAnchor from './MovementAnchor';
 
 import { aEntity } from './utils/AframeHyperscript';
 import VertexNode from './VertexNode';
@@ -54,12 +55,11 @@ function model(sources) {
     });
 
   const vertexDoms = vertexNodes.map(prop('DOM'));
-  const vertexStates = vertexNodes.map(prop('state'));
 
-  const vertexState$ = most
-    .combineArray(combineAllStreams, vertexStates)
-    .map(map(prop('position')))
-    .map(verts => ({ verts }));
+  const vertexState$ = most.of({ verts: props.initialVerts });
+    // .combineArray(combineAllStreams, vertexStates)
+    // .map(map(prop('position')))
+    // .map(verts => ({ verts }));
 
   const vertexDom$ = most.combineArray(combineAllStreams, vertexDoms);
   const state = {

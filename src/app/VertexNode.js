@@ -1,6 +1,5 @@
 import { T, F } from 'ramda';
-import { aSphere } from './utils/AframeHyperscript';
-import MovementAnchor from './MovementAnchor';
+import { aEntity } from './utils/AframeHyperscript';
 
 function intent(sources) {
   const { DOM, prop$, rootMouseDown$ } = sources;
@@ -23,24 +22,18 @@ function model(actions) {
     .startWith(false)
     .map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
 
-  // create movement anchors
-  // const anchor =
-
   const state$ = selected$.combine((color, p) => ({ ...p, color }), prop$);
   return state$;
 }
 
 function view(state$) {
   return state$.map(props =>
-    aSphere(
+    aEntity(
       '.vertex-node',
       {
         attrs: {
-          material: 'flatShading: true;',
-          'segments-height': '10',
-          'segments-width': '10',
-          color: props.color,
-          radius: '0.05',
+          geometry: 'primitive: sphere; radius: 0.05; segmentsWidth: 10; segmentsHeight: 10;',
+          material: `flatShading: true; color: ${props.color}`,
           position: props.position,
         },
       }
@@ -55,7 +48,6 @@ function VertexNode(sources) {
 
   const sinks = {
     DOM: vdom$,
-    state: state$,
   };
   return sinks;
 }
