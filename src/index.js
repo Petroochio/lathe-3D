@@ -1,3 +1,4 @@
+// @flow
 // Aframe setup
 import 'aframe';
 import Cycle from '@cycle/most-run';

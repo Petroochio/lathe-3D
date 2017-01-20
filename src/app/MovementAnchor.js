@@ -1,3 +1,4 @@
+// @flow
 import { T, F, add, zipWith } from 'ramda';
 import { aSphere } from './utils/AframeHyperscript';
 

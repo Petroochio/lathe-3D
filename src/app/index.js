@@ -1,3 +1,4 @@
+// @flow
 import * as most from 'most';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';

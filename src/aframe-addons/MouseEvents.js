@@ -1,3 +1,4 @@
+// @flow
 // TODO: Add mouse enter
 // Component for aframe cameras that emits mouse events on aframe tags, and do it cycle style
 import AFRAME from 'aframe';

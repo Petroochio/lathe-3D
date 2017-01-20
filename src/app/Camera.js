@@ -1,3 +1,4 @@
+// @flow
 import { h } from '@cycle/dom';
 import { T, F, nth, pick, prop, clamp } from 'ramda';
 

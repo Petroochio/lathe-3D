@@ -1,3 +1,4 @@
+// @flow
 import { T, F } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
