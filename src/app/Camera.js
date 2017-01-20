@@ -77,7 +77,21 @@ function view(state) {
   );
 }
 
-function Camera(sources) {
+type CameraSources = {
+  mouseDown$: any;
+  mouseUp$: any;
+  mouseLeave$: any;
+  mouseUp$: any;
+  mouseWheel$: any;
+  mouseMove$: any;
+  DOM: any;
+};
+
+type CameraSinks = {
+  DOM: any;
+};
+
+function Camera(sources: CameraSources): CameraSinks {
   const actions = intent(sources);
   const state = model(actions);
   const vdom$ = view(state);
