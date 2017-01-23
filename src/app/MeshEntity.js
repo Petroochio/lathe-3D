@@ -5,11 +5,6 @@ import * as most from 'most';
 // import MovementAnchor from './MovementAnchor';
 
 import { aEntity } from './utils/AframeHyperscript';
-import VertexNode from './VertexNode';
-
-function combineAllStreams(...values) {
-  return values;
-}
 
 const faces = [
   '0 2 1',
@@ -26,7 +21,21 @@ const faces = [
   '3 6 4',
 ];
 
-function renderMesh(state, vertexNodes) {
+
+function renderVert(position) {
+  return aEntity(
+    '.vertex-node',
+    {
+      attrs: {
+        geometry: 'primitive: sphere; radius: 0.05; segmentsWidth: 10; segmentsHeight: 10;',
+        material: 'flatShading: true; color: #aaaaff',
+        position,
+      },
+    }
+  );
+}
+
+function renderMesh(state) {
   const { verts } = state;
   return aEntity(
     '.edit-mesh',
@@ -37,47 +46,16 @@ function renderMesh(state, vertexNodes) {
         position: '0 0 0',
       },
     },
-    vertexNodes,
+    verts.map(renderVert),
   );
 }
 
-function model(sources) {
-  const { props, DOM, rootMouseDown$ } = sources;
-  // TODO Make props a stream
-  const vertexNodes = props
-    .initialVerts
-    .map((position) => {
-      const vertSources = {
-        DOM,
-        rootMouseDown$,
-        prop$: most.of({ position }),
-      };
-      return isolate(VertexNode)(vertSources);
-    });
-
-  const vertexDoms = vertexNodes.map(prop('DOM'));
-
-  const vertexState$ = most.of({ verts: props.initialVerts });
-    // .combineArray(combineAllStreams, vertexStates)
-    // .map(map(prop('position')))
-    // .map(verts => ({ verts }));
-
-  const vertexDom$ = most.combineArray(combineAllStreams, vertexDoms);
-  const state = {
-    vertexState$,
-    vertexDom$,
-  };
-  return state;
+function view(state$) {
+  return state$.map(renderMesh);
 }
 
-function view(state) {
-  return state.vertexState$.combine(renderMesh, state.vertexDom$);
-}
-
-// Add some sweet flow type checking for props :3
 function MeshEntity(sources) {
-  const state = model(sources);
-  const vdom$ = view(state);
+  const vdom$ = view(sources.prop$);
   const sinks = {
     DOM: vdom$,
   };

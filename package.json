@@ -41,6 +41,7 @@
     "@cycle/most-run": "^4.1.3",
     "aframe": "^0.3.2",
     "babel-preset-stage-0": "^6.16.0",
+    "cycle-proxy": "^3.0.0",
     "most": "^1.0.4",
     "ramda": "^0.22.1",
     "three": "^0.82.1",

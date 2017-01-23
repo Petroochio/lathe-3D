@@ -1,6 +1,18 @@
 // @flow
-import { T, F, add, zipWith } from 'ramda';
-import { aSphere } from './utils/AframeHyperscript';
+import { T, F, add, zipWith, join, nth } from 'ramda';
+import { aEntity } from './utils/AframeHyperscript';
+
+type AnchorSources = {
+  rootMouseMove$: any;
+  rootMouseUp$: any;
+  prop$: any;
+  DOM: any;
+};
+
+type AnchorSinks = {
+  DOM: any;
+  onion: any;
+};
 
 const AXIS_CONFIGS = {
   x: {
@@ -23,44 +35,38 @@ const AXIS_CONFIGS = {
 function getAxisProps(props) {
   const { axis, position } = props;
   const config = AXIS_CONFIGS[axis];
-
   const axisProps = {
     ...config,
-    position: zipWith(add, position, config.position),
+    position: join(' ')(zipWith(add, position, config.position)),
   };
   return axisProps;
 }
 
 function intent(sources) {
-  const { DOM, props$, rootMouseUp$, rootMouseMove$ } = sources;
+  const { DOM, prop$, rootMouseUp$, rootMouseMove$ } = sources;
   const mouseDown$ = DOM.select('.movement-anchor').events('mousedown');
 
   const intents = {
     rootMouseUp$,
     rootMouseMove$,
     mouseDown$,
-    props$,
+    prop$,
   };
   return intents;
 }
 
 function model(actions) {
-  const { mouseDown$, rootMouseUp$, rootMouseMove$, props$ } = actions;
+  const { mouseDown$, rootMouseUp$, rootMouseMove$, prop$ } = actions;
   const letGo$ = rootMouseUp$.map(F);
-  // const color$ = mouseUp$
-  //   .map(T)
-  //   .merge(deselect$)
-  //   .startWith(false)
-  //   .map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
+
   const movement$ = mouseDown$
-    .tap(e => e.stopPropogation())
     .map(T)
     .merge(letGo$)
     .combine((isHeld, movement) => [isHeld, movement], rootMouseMove$)
     .filter(([isHeld, _]) => isHeld)
     .map(([_, movement]) => movement);
 
-  const axisProps$ = props$.map(getAxisProps);
+  const axisProps$ = prop$.map(getAxisProps);
 
   const states = {
     movement$,
@@ -69,16 +75,14 @@ function model(actions) {
   return states;
 }
 
-function view(state$) {
-  return state$.map(props =>
-    aSphere(
+function view(state) {
+  return state.axisProps$.map(props =>
+    aEntity(
       '.movement-anchor',
       {
         attrs: {
-          material: 'flatShading: true;',
-          'segments-height': '10',
-          'segments-width': '10',
-          radius: '0.05',
+          material: `flatShading: true; color: ${props.color}`,
+          geometry: 'primitive: sphere; radius: 1; segmentsWidth: 10; segmentsHeight: 10;',
           color: props.color,
           rotation: props.rotation,
           position: props.position,
@@ -88,14 +92,19 @@ function view(state$) {
   );
 }
 
-function MovementAnchor(sources) {
+/**
+ * @props
+ *    axis - 'x', 'y', or 'z'
+ *    position - [x, y, z] coords
+ */
+function MovementAnchor(sources: AnchorSources): AnchorSinks {
   const actions = intent(sources);
-  const states = model(actions);
-  const vdom$ = view(states.axisProps$);
+  const state = model(actions);
+  const vdom$ = view(state);
 
   const sinks = {
     DOM: vdom$,
-    state: states.movement$,
+    onion: state.movement$,
   };
   return sinks;
 }

@@ -2,10 +2,12 @@
 import * as most from 'most';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
+import circulate from 'cycle-proxy/circulate/most';
 
 import { aScene, aSky } from './utils/AframeHyperscript';
 // Components
 import MeshEntity from './MeshEntity';
+import MovementAnchor from './MovementAnchor';
 import Camera from './Camera';
 
 const sky = aSky({ attrs: { color: '#000022' } });
@@ -19,6 +21,8 @@ const initialVerts = [
   '-1 -1 -1',
   '-1 -1 1',
 ];
+
+const initialVerts$ = most.of({ verts: initialVerts });
 
 function combineAllStreams(...values) {
   return values;
@@ -50,25 +54,37 @@ function intent(sources) {
 }
 
 function model(sources, actions) {
-  const { DOM } = sources;
+  const { DOM, verts$ } = sources;
   const { mouseDown$ } = actions;
   const camera = Camera({ DOM, ...actions });
-  const meshProps = { initialVerts };
-  const mesh = isolate(MeshEntity)({ DOM, rootMouseDown$: mouseDown$, props: meshProps });
 
-  const entities$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM]);
+  // const meshProp$ = most.merge(onion.state$, initialVerts$);
+  const mesh = isolate(MeshEntity)({ DOM, rootMouseDown$: mouseDown$, prop$: verts$ });
+
+  // temp anchor
+  const tempAchor = MovementAnchor(
+    {
+      DOM,
+      rootMouseUp$: actions.mouseUp$,
+      rootMouseMove$: actions.mouseMove$,
+      prop$: most.of({ position: [1.5, 0, 0], axis: 'x' }),
+    }
+  );
+
+  const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
 
   const state = {
-    entities$,
+    children$,
+    // vertexPositions$: meshProp$,
   };
   return state;
 }
 
 function view(state$) {
-  return state$.map(entities =>
+  return state$.map(children =>
     section(
       '#editor',
-      [aScene([...entities, sky])]
+      [aScene([...children, sky])]
     )
   );
 }
@@ -76,12 +92,13 @@ function view(state$) {
 function Lathe(sources) {
   const actions = intent(sources);
   const state = model(sources, actions);
-  const vdom$ = view(state.entities$);
+  const vdom$ = view(state.children$);
 
   const sinks = {
     DOM: vdom$,
+    verts$: initialVerts$, // most.merge(initialVerts$, state.vertexPositions$),
   };
   return sinks;
 }
 
-export default Lathe;
+export default circulate(Lathe, 'verts$');
