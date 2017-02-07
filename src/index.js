@@ -1,14 +1,14 @@
 // @flow
 // Aframe setup
 import 'aframe';
-import Cycle from '@cycle/most-run';
+import Cycle from '@cycle/xstream-run';
 import Onionify from 'cycle-onionify';
 import { makeDOMDriver } from '@cycle/dom';
 import './aframe-addons';
 // Main Component
-import App from './app';
+import Lathe from './app';
 
-const wrappedMain = Onionify(App);
+const wrappedMain = Onionify(Lathe);
 function makeDrivers() {
   const drivers = {
     DOM: makeDOMDriver('#root'),

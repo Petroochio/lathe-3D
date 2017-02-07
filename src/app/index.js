@@ -1,8 +1,7 @@
 // @flow
-import * as most from 'most';
+import xs from 'xstream';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
-import circulate from 'cycle-proxy/circulate/most';
 
 import { aScene, aSky } from './utils/AframeHyperscript';
 // Components
@@ -22,7 +21,7 @@ const initialVerts = [
   '-1 -1 1',
 ];
 
-const initialVerts$ = most.of({ verts: initialVerts });
+const initialVerts$ = xs.of({ verts: initialVerts });
 
 function combineAllStreams(...values) {
   return values;
@@ -54,24 +53,25 @@ function intent(sources) {
 }
 
 function model(sources, actions) {
-  const { DOM, verts$ } = sources;
+  const { DOM, onion } = sources;
   const { mouseDown$ } = actions;
-  const camera = Camera({ DOM, ...actions });
+  // const camera = Camera({ DOM, ...actions });
 
-  // const meshProp$ = most.merge(onion.state$, initialVerts$);
-  const mesh = isolate(MeshEntity)({ DOM, rootMouseDown$: mouseDown$, prop$: verts$ });
+  const meshProp$ = xs.merge(onion.state$, initialVerts$);
+  const mesh = isolate(MeshEntity)({ DOM, rootMouseDown$: mouseDown$, prop$: meshProp$ });
 
   // temp anchor
-  const tempAchor = MovementAnchor(
-    {
-      DOM,
-      rootMouseUp$: actions.mouseUp$,
-      rootMouseMove$: actions.mouseMove$,
-      prop$: most.of({ position: [1.5, 0, 0], axis: 'x' }),
-    }
-  );
+  // const tempAchor = MovementAnchor(
+  //   {
+  //     DOM,
+  //     rootMouseUp$: actions.mouseUp$,
+  //     rootMouseMove$: actions.mouseMove$,
+  //     prop$: xs.of({ position: [1.5, 0, 0], axis: 'x' }),
+  //   }
+  // );
 
-  const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
+  // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
+  const children$ = xs.of([]);
 
   const state = {
     children$,
@@ -96,9 +96,9 @@ function Lathe(sources) {
 
   const sinks = {
     DOM: vdom$,
-    verts$: initialVerts$, // most.merge(initialVerts$, state.vertexPositions$),
+    // verts$: initialVerts$, // most.merge(initialVerts$, state.vertexPositions$),
   };
   return sinks;
 }
 
-export default circulate(Lathe, 'verts$');
+export default Lathe;
