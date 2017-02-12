@@ -1,8 +1,5 @@
 // @flow
 import isolate from '@cycle/isolate';
-import { prop, map } from 'ramda';
-import * as most from 'most';
-// import MovementAnchor from './MovementAnchor';
 
 import { aEntity } from './utils/AframeHyperscript';
 

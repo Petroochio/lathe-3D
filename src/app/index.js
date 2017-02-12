@@ -21,8 +21,6 @@ const initialVerts = [
   '-1 -1 1',
 ];
 
-const initialVerts$ = xs.of({ verts: initialVerts });
-
 function combineAllStreams(...values) {
   return values;
 }
@@ -55,10 +53,9 @@ function intent(sources) {
 function model(sources, actions) {
   const { DOM, onion } = sources;
   const { mouseDown$ } = actions;
-  // const camera = Camera({ DOM, ...actions });
-
-  const meshProp$ = xs.merge(onion.state$, initialVerts$);
-  const mesh = isolate(MeshEntity)({ DOM, rootMouseDown$: mouseDown$, prop$: meshProp$ });
+  const camera = Camera({ DOM, ...actions });
+  const meshProp$ = onion.state$;
+  const mesh = isolate(MeshEntity, 'Mesh')({ DOM, rootMouseDown$: mouseDown$, prop$: meshProp$ });
 
   // temp anchor
   // const tempAchor = MovementAnchor(
@@ -71,7 +68,7 @@ function model(sources, actions) {
   // );
 
   // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
-  const children$ = xs.of([]);
+  const children$ = xs.combine(camera.DOM, mesh.DOM); // xs.of([mesh.DOM]);
 
   const state = {
     children$,
@@ -94,9 +91,12 @@ function Lathe(sources) {
   const state = model(sources, actions);
   const vdom$ = view(state.children$);
 
+  const initialReducer$ = xs.of(() => ({ verts: initialVerts }));
+
   const sinks = {
     DOM: vdom$,
     // verts$: initialVerts$, // most.merge(initialVerts$, state.vertexPositions$),
+    onion: initialReducer$, // Merge this with something else ^^^
   };
   return sinks;
 }

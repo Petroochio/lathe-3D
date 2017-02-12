@@ -1,5 +1,5 @@
 // @flow
-import { T, F, add, zipWith, join, nth } from 'ramda';
+import { T, F, add, zipWith, join } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 type AnchorSources = {
