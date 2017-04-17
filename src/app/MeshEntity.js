@@ -1,8 +1,13 @@
 // @flow
+import xs from 'xstream';
 import isolate from '@cycle/isolate';
+import { map, prop, addIndex, always } from 'ramda';
+import { pick, mix } from 'cycle-onionify';
 
 import { aEntity } from './utils/AframeHyperscript';
+import VertexNode from './VertexNode';
 
+// TODO make faces dynamic so verts can be added
 const faces = [
   '0 2 1',
   '2 3 1',
@@ -18,43 +23,66 @@ const faces = [
   '3 6 4',
 ];
 
+function model(sources) {
+  const { prop$, DOM, rootMouseDown$ } = sources;
 
-function renderVert(position) {
-  return aEntity(
-    '.vertex-node',
-    {
-      attrs: {
-        geometry: 'primitive: sphere; radius: 0.05; segmentsWidth: 10; segmentsHeight: 10;',
-        material: 'flatShading: true; color: #aaaaff',
-        position,
-      },
-    }
-  );
+  const createVertNode = (position$, index) => {
+    const vertSources = {
+      DOM,
+      rootMouseDown$,
+      prop$: position$,
+    };
+    return isolate(VertexNode, index)(vertSources);
+  };
+
+  const vertexNode$ = prop$.map(addIndex(map)(createVertNode));
+
+  const vertexDom$ = vertexNode$
+    .map(map(prop('DOM')))
+    .map(verts => xs.combine(...verts))
+    .flatten();
+
+  const vertexReducer$ = vertexNode$
+    .compose(pick('onion'))
+    .compose(mix(xs.combine))
+    .map(always);
+
+  const state = {
+    vertexReducer$,
+    vertexDom$,
+  };
+  return state;
 }
 
-function renderMesh(state) {
-  const { verts } = state;
-  return aEntity(
-    '.edit-mesh',
-    {
-      attrs: {
-        material: 'color: #222222; flatShading: true;',
-        geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${verts.join(',')};`,
-        position: '0 0 0',
-      },
-    },
-    verts.map(renderVert),
-  );
-}
+function view(prop$, vertexDom$) {
+  const meshVert$ = prop$
+    .map(verts => xs.combine(...verts))
+    .flatten();
 
-function view(state$) {
-  return state$.map(renderMesh);
+  return xs.combine(meshVert$, vertexDom$)
+    .map(([verts, vertexDoms]) =>
+      aEntity(
+        '.edit-mesh',
+        {
+          attrs: {
+            material: 'color: #222222; flatShading: true;',
+            geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${verts.join(',')};`,
+            position: '0 0 0',
+          },
+        },
+        vertexDoms,
+      )
+    );
 }
 
 function MeshEntity(sources) {
-  const vdom$ = view(sources.prop$);
+  const state = model(sources);
+  const vdom$ = view(sources.prop$, state.vertexDom$);
+  const initialReducer$ = xs.of(() => []);
+
   const sinks = {
     DOM: vdom$,
+    onion: xs.merge(initialReducer$, state.vertexReducer$),
   };
   return sinks;
 }

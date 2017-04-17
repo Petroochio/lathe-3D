@@ -1,5 +1,6 @@
 // @flow
 import xs from 'xstream';
+import { prop, always } from 'ramda';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 
@@ -11,14 +12,14 @@ import Camera from './Camera';
 
 const sky = aSky({ attrs: { color: '#000022' } });
 const initialVerts = [
-  '1 1 1',
-  '1 1 -1',
-  '1 -1 1',
-  '1 -1 -1',
-  '-1 1 -1',
-  '-1 1 1',
-  '-1 -1 -1',
-  '-1 -1 1',
+  xs.of('1 1 1'),
+  xs.of('1 1 -1'),
+  xs.of('1 -1 1'),
+  xs.of('1 -1 -1'),
+  xs.of('-1 1 -1'),
+  xs.of('-1 1 1'),
+  xs.of('-1 -1 -1'),
+  xs.of('-1 -1 1'),
 ];
 
 function combineAllStreams(...values) {
@@ -54,8 +55,8 @@ function model(sources, actions) {
   const { DOM, onion } = sources;
   const { mouseDown$ } = actions;
   const camera = Camera({ DOM, ...actions });
-  const meshProp$ = onion.state$;
-  const mesh = isolate(MeshEntity, 'Mesh')({ DOM, rootMouseDown$: mouseDown$, prop$: meshProp$ });
+  const meshProp$ = onion.state$.debug().map(prop('verts'));
+  const mesh = isolate(MeshEntity, 'Mesh')({ ...sources, rootMouseDown$: mouseDown$, prop$: meshProp$ });
 
   // temp anchor
   // const tempAchor = MovementAnchor(
@@ -72,6 +73,7 @@ function model(sources, actions) {
 
   const state = {
     children$,
+    meshReducer$: mesh.onion,
     // vertexPositions$: meshProp$,
   };
   return state;
@@ -91,12 +93,11 @@ function Lathe(sources) {
   const state = model(sources, actions);
   const vdom$ = view(state.children$);
 
-  const initialReducer$ = xs.of(() => ({ verts: initialVerts }));
+  const reducer$ = xs.merge(xs.of(always({ verts: initialVerts })), state.meshReducer$);
 
   const sinks = {
     DOM: vdom$,
-    // verts$: initialVerts$, // most.merge(initialVerts$, state.vertexPositions$),
-    onion: initialReducer$, // Merge this with something else ^^^
+    onion: reducer$,
   };
   return sinks;
 }
