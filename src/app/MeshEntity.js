@@ -5,7 +5,7 @@ import { map, prop, addIndex, always } from 'ramda';
 import { pick, mix } from 'cycle-onionify';
 
 import { aEntity } from './utils/AframeHyperscript';
-import VertexNode from './VertexNode';
+import VertexNodeList from './VertexNodeList';
 
 // TODO make faces dynamic so verts can be added
 const faces = [
@@ -24,34 +24,10 @@ const faces = [
 ];
 
 function model(sources) {
-  const { prop$, DOM, rootMouseDown$ } = sources;
-
-  const createVertNode = (position$, index) => {
-    const vertSources = {
-      DOM,
-      rootMouseDown$,
-      prop$: position$,
-    };
-    return isolate(VertexNode, index)(vertSources);
+  const reducers = {
+    initialReducer$: xs.of(always({ nodes: [] })),
   };
-
-  const vertexNode$ = prop$.map(addIndex(map)(createVertNode));
-
-  const vertexDom$ = vertexNode$
-    .map(map(prop('DOM')))
-    .map(verts => xs.combine(...verts))
-    .flatten();
-
-  const vertexReducer$ = vertexNode$
-    .compose(pick('onion'))
-    .compose(mix(xs.combine))
-    .map(always);
-
-  const state = {
-    vertexReducer$,
-    vertexDom$,
-  };
-  return state;
+  return reducers;
 }
 
 function view(prop$, vertexDom$) {
@@ -76,13 +52,16 @@ function view(prop$, vertexDom$) {
 }
 
 function MeshEntity(sources) {
-  const state = model(sources);
-  const vdom$ = view(sources.prop$, state.vertexDom$);
-  const initialReducer$ = xs.of(() => []);
+  const { prop$, DOM, rootMouseDown$, onion } = sources;
+
+  const reducers = model(sources);
+  const children = isolate(VertexNodeList, 'nodes')(sources);
+
+  const vdom$ = view(onion.state$, children.DOM$);
 
   const sinks = {
     DOM: vdom$,
-    onion: xs.merge(initialReducer$, state.vertexReducer$),
+    onion: xs.merge(reducers.initialReducer$, children.onion),
   };
   return sinks;
 }

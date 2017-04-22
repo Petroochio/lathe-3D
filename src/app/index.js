@@ -41,22 +41,18 @@ function intent(sources) {
   const mouseWheel$ = editorDOM.events('mousewheel');
   const mouseMove$ = editorDOM.events('mousemove').map(mouseMoveProps);
 
-  const intents = {
+  const actions = {
     mouseUp$,
     mouseDown$,
     mouseMove$,
     mouseLeave$,
     mouseWheel$,
   };
-  return intents;
+  return actions;
 }
 
 function model(sources, actions) {
-  const { DOM, onion } = sources;
-  const { mouseDown$ } = actions;
-  const camera = Camera({ DOM, ...actions });
-  const meshProp$ = onion.state$.debug().map(prop('verts'));
-  const mesh = isolate(MeshEntity, 'Mesh')({ ...sources, rootMouseDown$: mouseDown$, prop$: meshProp$ });
+  // const { mouseDown$ } = actions;
 
   // temp anchor
   // const tempAchor = MovementAnchor(
@@ -69,14 +65,14 @@ function model(sources, actions) {
   // );
 
   // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
-  const children$ = xs.combine(camera.DOM, mesh.DOM); // xs.of([mesh.DOM]);
+  // xs.of([mesh.DOM]);
 
-  const state = {
-    children$,
-    meshReducer$: mesh.onion,
+  const reducers = {
+    // meshReducer$: mesh.onion,
     // vertexPositions$: meshProp$,
+    initialReducer$: xs.of(always({ verts: initialVerts })),
   };
-  return state;
+  return reducers;
 }
 
 function view(state$) {
@@ -89,11 +85,19 @@ function view(state$) {
 }
 
 function Lathe(sources) {
-  const actions = intent(sources);
-  const state = model(sources, actions);
-  const vdom$ = view(state.children$);
+  const { DOM, onion } = sources;
 
-  const reducer$ = xs.merge(xs.of(always({ verts: initialVerts })), state.meshReducer$);
+  const actions = intent(sources);
+
+  const camera = Camera({ DOM, ...actions });
+  const meshProp$ = onion.state$.map(prop('verts'));
+  const mesh = isolate(MeshEntity, 'Mesh')({ ...sources, rootMouseDown$: actions.mouseDown$, prop$: meshProp$ });
+
+  const reducers = model(sources, actions);
+  const reducer$ = xs.merge(reducers.initialReducer$, mesh.onion);
+
+  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM);
+  const vdom$ = view(childVnodes$);
 
   const sinks = {
     DOM: vdom$,

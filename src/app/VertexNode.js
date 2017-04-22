@@ -23,7 +23,7 @@ function model(actions) {
     .startWith({ isSelected: false });
 
   const color$ = selected$.map(({ isSelected }) => (isSelected ? '#ff0000' : '#aaaaff'));
-  const selectedReducer$ = selected$.map(always);
+  const selectedReducer$ = selected$.map(always); // .map((x) => y => { console.log(y); return x; });
 
   return {
     selectedReducer$,
