@@ -2,6 +2,7 @@ import xs from 'xstream';
 import isolate from '@cycle/isolate';
 import { pick, mix } from 'cycle-onionify';
 import { map, addIndex } from 'ramda';
+import { aEntity } from './utils/AframeHyperscript';
 
 import VertexNode from './VertexNode';
 
@@ -29,7 +30,7 @@ function viewModel(state$, vertexDoms$) {
 }
 
 function view(viewState$) {
-  return viewState$;
+  return viewState$.map(vtree => aEntity(vtree));
 }
 
 function VertexNodeList(sources) {
@@ -48,7 +49,7 @@ function VertexNodeList(sources) {
     .compose(mix(xs.merge));
 
   const reducers = model();
-  const viewState = viewModel(onion.state$, vertexDoms$);
+  const viewState = viewModel(prop$.compose(mix(xs.combine)), vertexDoms$);
   const vdom$ = view(viewState);
 
   const sinks = {

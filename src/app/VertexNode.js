@@ -23,12 +23,16 @@ function model(actions) {
     .startWith({ isSelected: false });
 
   const color$ = selected$.map(({ isSelected }) => (isSelected ? '#ff0000' : '#aaaaff'));
-  const selectedReducer$ = selected$.map(always); // .map((x) => y => { console.log(y); return x; });
+  // const selectedReducer$ = selected$.map(always); // .map((x) => y => { console.log(y); return x; });
 
   return {
-    selectedReducer$,
+    selectedReducer$: mouseUp$.mapTo(always({ isSelected: true })).startWith(always({ isSelected: false })),
     color$,
   };
+}
+
+function viewModel(prop$, state$) {
+
 }
 
 function view(prop$, state) {

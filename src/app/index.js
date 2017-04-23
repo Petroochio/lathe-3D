@@ -88,9 +88,9 @@ function Lathe(sources) {
   const { DOM, onion } = sources;
 
   const actions = intent(sources);
-
+onion.state$.debug();
   const camera = Camera({ DOM, ...actions });
-  const meshProp$ = onion.state$.map(prop('verts'));
+  const meshProp$ = xs.of(initialVerts); // onion.state$.map(prop('verts'));
   const mesh = isolate(MeshEntity, 'Mesh')({ ...sources, rootMouseDown$: actions.mouseDown$, prop$: meshProp$ });
 
   const reducers = model(sources, actions);

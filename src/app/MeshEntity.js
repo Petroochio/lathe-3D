@@ -46,7 +46,7 @@ function view(prop$, vertexDom$) {
             position: '0 0 0',
           },
         },
-        vertexDoms,
+        [vertexDoms],
       )
     );
 }
@@ -57,7 +57,7 @@ function MeshEntity(sources) {
   const reducers = model(sources);
   const children = isolate(VertexNodeList, 'nodes')(sources);
 
-  const vdom$ = view(onion.state$, children.DOM$);
+  const vdom$ = view(prop$, children.DOM);
 
   const sinks = {
     DOM: vdom$,
