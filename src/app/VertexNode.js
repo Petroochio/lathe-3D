@@ -1,6 +1,6 @@
 // @flow
 import xs from 'xstream';
-import { always } from 'ramda';
+import { add, join, zipWith } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 function intent(sources) {
@@ -14,22 +14,30 @@ function intent(sources) {
   return intents;
 }
 
-function model(actions) {
+function model(actions, initialPos) {
   const { mouseUp$, rootMouseDown$ } = actions;
+  const position$ = mouseUp$
+    .mapTo([0.01, 0, 0])
+    .fold(zipWith(add), initialPos)
+    .startWith(initialPos)
+    .map(join(' '));
+
   const selected$ = xs.merge(
-      mouseUp$.mapTo({ isSelected: true }),
-      rootMouseDown$.mapTo({ isSelected: false })
+      mouseUp$.mapTo(true),
+      rootMouseDown$.mapTo(false)
     )
-    .startWith({ isSelected: false });
-  const color$ = selected$.map(({ isSelected }) => (isSelected ? '#ff0000' : '#aaaaff'));
+    .startWith(false);
+  const color$ = selected$.map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
 
   return {
+    position$,
+    selected$,
     color$,
   };
 }
 
-function view(prop$, state) {
-  return xs.combine(prop$, state.color$)
+function view(state) {
+  return xs.combine(state.position$, state.color$)
     .map(([position, color]) =>
       aEntity(
         '.vertex-node',
@@ -46,10 +54,15 @@ function view(prop$, state) {
 
 function VertexNode(sources) {
   const actions = intent(sources);
-  const state = model(actions);
-  const vdom$ = view(sources.prop$, state);
+  const state = model(actions, sources.initialPos);
+
+  const state$ = xs.combine(state.selected$, state.position$)
+    .map(([isSelected, position]) => ({ isSelected, position }));
+
+  const vdom$ = view(state);
 
   const sinks = {
+    state$,
     DOM: vdom$,
   };
   return sinks;

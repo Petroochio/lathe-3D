@@ -1,6 +1,6 @@
 // @flow
 import xs from 'xstream';
-import { prop, always } from 'ramda';
+import { map, prop, always } from 'ramda';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 
@@ -12,14 +12,14 @@ import Camera from './Camera';
 
 const sky = aSky({ attrs: { color: '#000022' } });
 const initialVerts = [
-  xs.of('1 1 1'),
-  xs.of('1 1 -1'),
-  xs.of('1 -1 1'),
-  xs.of('1 -1 -1'),
-  xs.of('-1 1 -1'),
-  xs.of('-1 1 1'),
-  xs.of('-1 -1 -1'),
-  xs.of('-1 -1 1'),
+  [1, 1, 1],
+  [1, 1, -1],
+  [1, -1, 1],
+  [1, -1, -1],
+  [-1, 1, -1],
+  [-1, 1, 1],
+  [-1, -1, -1],
+  [-1, -1, 1],
 ];
 
 function mouseMoveProps({ movementX, movementY }) {
@@ -84,10 +84,19 @@ function Lathe(sources) {
   const { DOM } = sources;
 
   const actions = intent(sources);
-  const initialProps$ = xs.of({ verts: initialVerts });
   const camera = Camera({ DOM, ...actions });
-  const meshProp$ = initialProps$.map(prop('verts'));
-  const mesh = isolate(MeshEntity, 'Mesh')({ ...sources, rootMouseDown$: actions.mouseDown$, prop$: meshProp$ });
+
+  // Proxy bisnuz for handlers
+  const initialVerts$ = xs.from(initialVerts);
+  // const totalVerts$ = xs.create();
+  const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
+
+  const meshProp$ = vertCollection$;// .map(prop('verts'));
+  const mesh = isolate(MeshEntity, 'Mesh')({
+    ...sources,
+    rootMouseDown$: actions.mouseDown$,
+    prop$: meshProp$,
+  });
 
   const reducers = model(sources, actions);
   const reducer$ = xs.merge(reducers.initialReducer$, mesh.onion);
@@ -97,7 +106,6 @@ function Lathe(sources) {
 
   const sinks = {
     DOM: vdom$,
-    onion: reducer$,
   };
   return sinks;
 }

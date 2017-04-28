@@ -23,16 +23,8 @@ const faces = [
   '3 6 4',
 ];
 
-function model(sources) {
-
-}
-
-function view(prop$, vertexDom$) {
-  const meshVert$ = prop$
-    .map(verts => xs.combine(...verts))
-    .flatten();
-
-  return xs.combine(meshVert$, vertexDom$)
+function view(vertState$, vertexDom$) {
+  return xs.combine(vertState$, vertexDom$)
     .map(([verts, vertexDoms]) =>
       aEntity(
         '.edit-mesh',
@@ -51,12 +43,14 @@ function view(prop$, vertexDom$) {
 function MeshEntity(sources) {
   const { prop$, DOM, rootMouseDown$ } = sources;
 
-  const vertNodes$ = Collection(VertexNode, sources, prop$.map(map(vert$ => ({ prop$: vert$ }))));
+  const vertNodes$ = Collection(VertexNode, sources, prop$.map(vert => ({ initialPos: vert })));
   const vertDoms$ = Collection.pluck(vertNodes$, prop('DOM'));
+  const vertStates$ = Collection.pluck(vertNodes$, prop('state$')).map(map(prop('position')));
 
-  const vdom$ = view(prop$, vertDoms$);
+  const vdom$ = view(vertStates$, vertDoms$);
 
   const sinks = {
+    vertStates$,
     DOM: vdom$,
   };
   return sinks;
