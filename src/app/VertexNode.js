@@ -21,18 +21,11 @@ function model(actions) {
       rootMouseDown$.mapTo({ isSelected: false })
     )
     .startWith({ isSelected: false });
-
   const color$ = selected$.map(({ isSelected }) => (isSelected ? '#ff0000' : '#aaaaff'));
-  // const selectedReducer$ = selected$.map(always); // .map((x) => y => { console.log(y); return x; });
 
   return {
-    selectedReducer$: mouseUp$.mapTo(always({ isSelected: true })).startWith(always({ isSelected: false })),
     color$,
   };
-}
-
-function viewModel(prop$, state$) {
-
 }
 
 function view(prop$, state) {
@@ -55,12 +48,9 @@ function VertexNode(sources) {
   const actions = intent(sources);
   const state = model(actions);
   const vdom$ = view(sources.prop$, state);
-  const initialReducer$ = xs.of(always({ isSelected: false }));
-  const reducer$ = xs.merge(initialReducer$, state.selectedReducer$);
 
   const sinks = {
     DOM: vdom$,
-    onion: reducer$,
   };
   return sinks;
 }

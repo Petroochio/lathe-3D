@@ -36,12 +36,12 @@
   },
   "dependencies": {
     "@cycle/base": "^4.1.1",
+    "@cycle/collection": "^0.5.1",
     "@cycle/dom": "12.1.0",
     "@cycle/isolate": "^1.4.0",
     "@cycle/xstream-run": "^4.2.0",
     "aframe": "^0.3.2",
     "babel-preset-stage-0": "^6.16.0",
-    "cycle-onionify": "^2.4.0",
     "cycle-proxy": "^3.0.0",
     "most": "^1.0.4",
     "ramda": "^0.22.1",

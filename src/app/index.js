@@ -22,10 +22,6 @@ const initialVerts = [
   xs.of('-1 -1 1'),
 ];
 
-function combineAllStreams(...values) {
-  return values;
-}
-
 function mouseMoveProps({ movementX, movementY }) {
   return {
     dx: movementX,
@@ -85,12 +81,12 @@ function view(state$) {
 }
 
 function Lathe(sources) {
-  const { DOM, onion } = sources;
+  const { DOM } = sources;
 
   const actions = intent(sources);
-onion.state$.debug();
+  const initialProps$ = xs.of({ verts: initialVerts });
   const camera = Camera({ DOM, ...actions });
-  const meshProp$ = xs.of(initialVerts); // onion.state$.map(prop('verts'));
+  const meshProp$ = initialProps$.map(prop('verts'));
   const mesh = isolate(MeshEntity, 'Mesh')({ ...sources, rootMouseDown$: actions.mouseDown$, prop$: meshProp$ });
 
   const reducers = model(sources, actions);
