@@ -1,6 +1,6 @@
 // @flow
 import xs from 'xstream';
-import { map, prop, always } from 'ramda';
+import { map, propEq, always } from 'ramda';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 
@@ -36,6 +36,8 @@ function intent(sources) {
   const mouseDown$ = editorDOM.events('mousedown');
   const mouseWheel$ = editorDOM.events('mousewheel');
   const mouseMove$ = editorDOM.events('mousemove').map(mouseMoveProps);
+  const keyDown$ = sources.DOM.select('body').events('keydown');
+  const keyUp$ = sources.DOM.select('body').events('keyup');
 
   const actions = {
     mouseUp$,
@@ -43,11 +45,13 @@ function intent(sources) {
     mouseMove$,
     mouseLeave$,
     mouseWheel$,
+    keyDown$,
+    keyUp$,
   };
   return actions;
 }
 
-function model(sources, actions) {
+function model(actions) {
   // const { mouseDown$ } = actions;
 
   // temp anchor
@@ -63,18 +67,32 @@ function model(sources, actions) {
   // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
   // xs.of([mesh.DOM]);
 
-  const reducers = {
+  const isAltKey = propEq('key', 'Alt');
+  const altKeyDown$ = actions.keyDown$
+    .filter(isAltKey)
+    .mapTo(true);
+
+  const altKeyUp$ = actions.keyUp$
+    .filter(isAltKey)
+    .mapTo(false);
+
+  const altKeyState$ = xs.merge(altKeyDown$, altKeyUp$).startWith(false);
+
+  const state = {
     // meshReducer$: mesh.onion,
     // vertexPositions$: meshProp$,
+    altKeyState$,
     initialReducer$: xs.of(always({ verts: initialVerts })),
   };
-  return reducers;
+  return state;
 }
 
-function view(state$) {
-  return state$.map(children =>
+function view(state, children$) {
+  return xs.combine(state.altKeyState$, children$)
+    .map(([altKeyDown, children]) =>
     section(
       '#editor',
+      { style: { cursor: `${altKeyDown ? 'move' : 'auto'}` } },
       [aScene([...children, sky])]
     )
   );
@@ -84,7 +102,9 @@ function Lathe(sources) {
   const { DOM } = sources;
 
   const actions = intent(sources);
-  const camera = Camera({ DOM, ...actions });
+  const state = model(actions);
+  const { altKeyState$ } = state;
+  const camera = Camera({ DOM, altKeyState$, ...actions });
 
   // Proxy bisnuz for handlers
   const initialVerts$ = xs.from(initialVerts);
@@ -94,15 +114,12 @@ function Lathe(sources) {
   const meshProp$ = vertCollection$;// .map(prop('verts'));
   const mesh = isolate(MeshEntity, 'Mesh')({
     ...sources,
-    rootMouseDown$: actions.mouseDown$,
+    rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });
 
-  const reducers = model(sources, actions);
-  const reducer$ = xs.merge(reducers.initialReducer$, mesh.onion);
-
   const childVnodes$ = xs.combine(camera.DOM, mesh.DOM);
-  const vdom$ = view(childVnodes$);
+  const vdom$ = view(state, childVnodes$);
 
   const sinks = {
     DOM: vdom$,

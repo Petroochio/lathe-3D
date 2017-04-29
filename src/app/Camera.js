@@ -1,7 +1,7 @@
 // @flow
 import { h } from '@cycle/dom';
 import xs from 'xstream';
-import { nth, pick, prop, clamp } from 'ramda';
+import { nth, pick, prop, propEq, clamp } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
 
@@ -28,7 +28,6 @@ function intent(sources) {
     mouseFalse$
   );
 
-
   const mouseDrag$ = xs.combine(isMouseDown$, sources.mouseMove$)
     .filter(([isDown]) => isDown)
     .map(nth(1));
@@ -44,13 +43,26 @@ function intent(sources) {
   return intents;
 }
 
-function model(actions) {
-  const rotation$ = actions
-    .mouseDrag$
+function model(actions, sources) {
+  const isAltKey = propEq('key', 'Alt');
+  const altKeyDown$ = sources.keyDown$
+    .filter(isAltKey)
+    .mapTo(true);
+
+  const altKeyUp$ = sources.keyUp$
+    .filter(isAltKey)
+    .mapTo(false);
+
+  const altKeyState$ = xs.merge(altKeyDown$, altKeyUp$);
+
+  const rotation$ = xs.combine(actions.mouseDrag$, sources.altKeyState$)
+    .filter(nth(1))
+    .map(nth(0))
     .fold(calcRotation, { xdeg: 0, ydeg: 0 });
 
-  const zoom$ = actions
-    .mouseWheel$
+  const zoom$ = xs.combine(actions.mouseWheel$, sources.altKeyState$)
+    .filter(nth(1))
+    .map(nth(0))
     .map(prop('deltaY'))
     .fold((zoom, dZoom) => clamp(2, Infinity)(zoom - (dZoom / 50)), 5);
 
@@ -86,6 +98,7 @@ type CameraSources = {
   mouseUp$: any;
   mouseWheel$: any;
   mouseMove$: any;
+  altKeyState$: any;
   DOM: any;
 };
 
@@ -95,7 +108,7 @@ type CameraSinks = {
 
 function Camera(sources: CameraSources): CameraSinks {
   const actions = intent(sources);
-  const state = model(actions);
+  const state = model(actions, sources);
   const vdom$ = view(state);
 
   const sinks = {

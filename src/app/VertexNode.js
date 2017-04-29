@@ -1,21 +1,21 @@
 // @flow
 import xs from 'xstream';
-import { add, join, zipWith } from 'ramda';
+import { add, compose, join, not, prop, zipWith } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 function intent(sources) {
-  const { DOM, rootMouseDown$ } = sources;
+  const { DOM, rootInput$ } = sources;
   const mouseUp$ = DOM.select('.vertex-node').events('mouseup');
 
   const intents = {
-    rootMouseDown$,
+    rootInput$,
     mouseUp$,
   };
   return intents;
 }
 
 function model(actions, initialPos) {
-  const { mouseUp$, rootMouseDown$ } = actions;
+  const { mouseUp$, rootInput$ } = actions;
   const position$ = mouseUp$
     .mapTo([0.01, 0, 0])
     .fold(zipWith(add), initialPos)
@@ -23,8 +23,8 @@ function model(actions, initialPos) {
     .map(join(' '));
 
   const selected$ = xs.merge(
-      mouseUp$.mapTo(true),
-      rootMouseDown$.mapTo(false)
+      mouseUp$.filter(compose(not, prop('altKey'))).mapTo(true),
+      rootInput$.filter(compose(not, prop('altKey'))).mapTo(false)
     )
     .startWith(false);
   const color$ = selected$.map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));

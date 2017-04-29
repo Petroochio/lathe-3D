@@ -41,7 +41,7 @@ function view(vertState$, vertexDom$) {
 }
 
 function MeshEntity(sources) {
-  const { prop$, DOM, rootMouseDown$ } = sources;
+  const { prop$ } = sources;
 
   const vertNodes$ = Collection(VertexNode, sources, prop$.map(vert => ({ initialPos: vert })));
   const vertDoms$ = Collection.pluck(vertNodes$, prop('DOM'));
