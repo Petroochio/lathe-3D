@@ -72,7 +72,7 @@ function model(actions) {
     // meshReducer$: mesh.onion,
     // vertexPositions$: meshProp$,
     altKeyState$: createKeyPress('Alt', actions.keyDown$, actions.keyUp$),
-    // shiftKeyState$: createKeyPress('Shift', actions.keyDown$, actions.keyUp$),
+    shiftKeyState$: createKeyPress('Shift', actions.keyDown$, actions.keyUp$),
     initialReducer$: xs.of(always({ verts: initialVerts })),
   };
   return state;
@@ -94,7 +94,7 @@ function Lathe(sources) {
 
   const actions = intent(sources);
   const state = model(actions);
-  const { altKeyState$ } = state;
+  const { altKeyState$, shiftKeyState$ } = state;
   const camera = Camera({ DOM, altKeyState$, ...actions });
 
   // Proxy bisnuz for handlers
@@ -105,6 +105,8 @@ function Lathe(sources) {
   const meshProp$ = vertCollection$;// .map(prop('verts'));
   const mesh = isolate(MeshEntity, 'Mesh')({
     ...sources,
+    altKeyState$,
+    shiftKeyState$,
     rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });

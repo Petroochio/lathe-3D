@@ -1,32 +1,38 @@
 // @flow
 import xs from 'xstream';
-import { add, compose, join, not, prop, zipWith } from 'ramda';
+import sampleCombine from 'xstream/extra/sampleCombine';
+import { add, any, compose, equals, join, not, nth, tail, zipWith } from 'ramda';
+
 import { aEntity } from './utils/AframeHyperscript';
 
 function intent(sources) {
-  const { DOM, rootInput$ } = sources;
+  const { DOM } = sources;
   const mouseUp$ = DOM.select('.vertex-node').events('mouseup');
 
   const intents = {
-    rootInput$,
     mouseUp$,
   };
   return intents;
 }
 
-function model(actions, initialPos) {
-  const { mouseUp$, rootInput$ } = actions;
+function model(sources, actions) {
+  const { mouseUp$ } = actions;
+  const { initialPos, rootInput$, altKeyState$, shiftKeyState$ } = sources;
   const position$ = mouseUp$
     .mapTo([0.01, 0, 0])
     .fold(zipWith(add), initialPos)
     .startWith(initialPos)
     .map(join(' '));
 
-  const selected$ = xs.merge(
-      mouseUp$.filter(compose(not, prop('altKey'))).mapTo(true),
-      rootInput$.filter(compose(not, prop('altKey'))).mapTo(false)
-    )
-    .startWith(false);
+  const selectTrigger$ = mouseUp$.compose(sampleCombine(altKeyState$))
+    .filter(compose(not, nth(1)))
+    .mapTo(true);
+
+  const deselectTrigger$ = rootInput$.compose(sampleCombine(altKeyState$, shiftKeyState$))
+    .filter(compose(not, any(equals(true)), tail))
+    .mapTo(false);
+
+  const selected$ = xs.merge(selectTrigger$, deselectTrigger$).startWith(false);
   const color$ = selected$.map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
 
   return {
@@ -54,7 +60,7 @@ function view(state) {
 
 function VertexNode(sources) {
   const actions = intent(sources);
-  const state = model(actions, sources.initialPos);
+  const state = model(sources, actions);
 
   const state$ = xs.combine(state.selected$, state.position$)
     .map(([isSelected, position]) => ({ isSelected, position }));
