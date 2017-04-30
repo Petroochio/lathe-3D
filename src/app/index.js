@@ -5,6 +5,7 @@ import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 
 import { aScene, aSky } from './utils/AframeHyperscript';
+import createKeyPress from './utils/CreateKeyPress';
 // Components
 import MeshEntity from './MeshEntity';
 import MovementAnchor from './MovementAnchor';
@@ -67,21 +68,11 @@ function model(actions) {
   // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
   // xs.of([mesh.DOM]);
 
-  const isAltKey = propEq('key', 'Alt');
-  const altKeyDown$ = actions.keyDown$
-    .filter(isAltKey)
-    .mapTo(true);
-
-  const altKeyUp$ = actions.keyUp$
-    .filter(isAltKey)
-    .mapTo(false);
-
-  const altKeyState$ = xs.merge(altKeyDown$, altKeyUp$).startWith(false);
-
   const state = {
     // meshReducer$: mesh.onion,
     // vertexPositions$: meshProp$,
-    altKeyState$,
+    altKeyState$: createKeyPress('Alt', actions.keyDown$, actions.keyUp$),
+    // shiftKeyState$: createKeyPress('Shift', actions.keyDown$, actions.keyUp$),
     initialReducer$: xs.of(always({ verts: initialVerts })),
   };
   return state;
