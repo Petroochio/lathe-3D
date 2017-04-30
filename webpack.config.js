@@ -22,7 +22,7 @@ module.exports = {
       },
       {
         test: /\.scss$/,
-        loader: ExtractText.extract('style-loader', 'css-loader!sass-loader')
+        loader: ExtractText.extract({ fallback: 'style-loader', use: 'css-loader!sass-loader' })
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg|woff|woff2($|\?))$/,
