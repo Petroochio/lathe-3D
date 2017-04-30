@@ -1,4 +1,3 @@
-// @flow
 import { h } from '@cycle/dom';
 import xs from 'xstream';
 import { nth, pick, prop, propEq, clamp } from 'ramda';
@@ -91,22 +90,7 @@ function view(state) {
   );
 }
 
-type CameraSources = {
-  mouseDown$: any;
-  mouseUp$: any;
-  mouseLeave$: any;
-  mouseUp$: any;
-  mouseWheel$: any;
-  mouseMove$: any;
-  altKeyState$: any;
-  DOM: any;
-};
-
-type CameraSinks = {
-  DOM: any;
-};
-
-function Camera(sources: CameraSources): CameraSinks {
+function Camera(sources) {
   const actions = intent(sources);
   const state = model(actions, sources);
   const vdom$ = view(state);

@@ -1,4 +1,3 @@
-// @flow
 import xs from 'xstream';
 import isolate from '@cycle/isolate';
 import { map, prop, addIndex, always } from 'ramda';

@@ -1,4 +1,3 @@
-// @flow
 import xs from 'xstream';
 import { map, propEq, always } from 'ramda';
 import { section } from '@cycle/dom';

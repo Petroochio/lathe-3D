@@ -1,4 +1,3 @@
-// @flow
 // Based on custom geometry example from AFRAME docs
 import AFRAME from 'aframe';
 import * as THREE from 'three';

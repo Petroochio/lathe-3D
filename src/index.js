@@ -1,4 +1,3 @@
-// @flow
 // Aframe setup
 import 'aframe';
 import Cycle from '@cycle/xstream-run';

@@ -1,18 +1,5 @@
-// @flow
 import { T, F, add, zipWith, join } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
-
-type AnchorSources = {
-  rootMouseMove$: any;
-  rootMouseUp$: any;
-  prop$: any;
-  DOM: any;
-};
-
-type AnchorSinks = {
-  DOM: any;
-  onion: any;
-};
 
 const AXIS_CONFIGS = {
   x: {
@@ -97,7 +84,7 @@ function view(state) {
  *    axis - 'x', 'y', or 'z'
  *    position - [x, y, z] coords
  */
-function MovementAnchor(sources: AnchorSources): AnchorSinks {
+function MovementAnchor(sources) {
   const actions = intent(sources);
   const state = model(actions);
   const vdom$ = view(state);

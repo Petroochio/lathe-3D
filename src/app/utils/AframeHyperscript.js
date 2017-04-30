@@ -1,4 +1,3 @@
-// @flow
 import { h } from '@cycle/dom';
 import { type, tail } from 'ramda';
 

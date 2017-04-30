@@ -1,4 +1,3 @@
-// @flow
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
 import { add, any, compose, equals, join, not, nth, tail, zipWith } from 'ramda';

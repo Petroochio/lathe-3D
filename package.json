@@ -7,7 +7,6 @@
     "start": "node src/index.js",
     "build": "webpack",
     "lint": "eslint ./src",
-    "flow": "flow",
     "build:watch": "webpack --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,9 +14,6 @@
     "presets": [
       "es2015",
       "stage-0"
-    ],
-    "plugins": [
-      "transform-flow-strip-types"
     ]
   },
   "repository": {
@@ -42,7 +38,6 @@
     "@cycle/xstream-run": "^4.2.0",
     "aframe": "^0.3.2",
     "babel-preset-stage-0": "^6.16.0",
-    "cycle-proxy": "^3.0.0",
     "most": "^1.0.4",
     "ramda": "^0.22.1",
     "three": "^0.82.1",
@@ -52,12 +47,10 @@
     "babel-core": "^6.14.0",
     "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.5",
-    "babel-plugin-transform-flow-strip-types": "^6.22.0",
     "babel-preset-es2015": "^6.14.0",
     "css-loader": "^0.24.0",
     "eslint": "^3.10.2",
     "eslint-config-airbnb-base": "^10.0.1",
-    "eslint-plugin-flowtype": "^2.30.0",
     "eslint-plugin-import": "^2.2.0",
     "extract-text-webpack-plugin": "^2.1.0",
     "file-loader": "^0.9.0",
