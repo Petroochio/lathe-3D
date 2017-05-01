@@ -1,4 +1,6 @@
-import { T, F, add, zipWith, join } from 'ramda';
+import xs from 'xstream';
+import sampleCombine from 'xstream/extra/sampleCombine';
+import { add, apply, join, nth, prop, zipWith } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 const AXIS_CONFIGS = {
@@ -20,7 +22,7 @@ const AXIS_CONFIGS = {
 };
 
 function getAxisProps(props) {
-  const { axis, position } = props;
+  const [position, { axis }] = props;
   const config = AXIS_CONFIGS[axis];
   const axisProps = {
     ...config,
@@ -44,20 +46,26 @@ function intent(sources) {
 
 function model(actions) {
   const { mouseDown$, rootMouseUp$, rootMouseMove$, prop$ } = actions;
-  const letGo$ = rootMouseUp$.map(F);
+  const isHeld$ = xs.merge(mouseDown$.mapTo(true), rootMouseUp$.mapTo(false));
 
-  const movement$ = mouseDown$
-    .map(T)
-    .merge(letGo$)
-    .combine((isHeld, movement) => [isHeld, movement], rootMouseMove$)
-    .filter(([isHeld, _]) => isHeld)
-    .map(([_, movement]) => movement);
+  const movement$ = rootMouseMove$
+    .compose(sampleCombine(isHeld$))
+    .filter(nth(1))
+    .map(nth(0))
+    .mapTo([0.01, 0, 0])
+    .startWith([0, 0, 0]);
 
-  const axisProps$ = prop$.map(getAxisProps);
+  const position$ = xs.merge(prop$.map(prop('position')), movement$)
+    .fold(zipWith(add), [0, 0, 0]);
+
+  const axisProps$ = position$
+    .compose(sampleCombine(prop$))
+    .map(getAxisProps);
 
   const states = {
     movement$,
     axisProps$,
+    isHeld$,
   };
   return states;
 }
@@ -91,7 +99,8 @@ function MovementAnchor(sources) {
 
   const sinks = {
     DOM: vdom$,
-    onion: state.movement$,
+    update$: state.movement$,
+    holdState$: state.isHeld$,
   };
   return sinks;
 }

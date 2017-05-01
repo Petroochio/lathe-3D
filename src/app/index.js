@@ -52,18 +52,6 @@ function intent(sources) {
 }
 
 function model(actions) {
-  // const { mouseDown$ } = actions;
-
-  // temp anchor
-  // const tempAchor = MovementAnchor(
-  //   {
-  //     DOM,
-  //     rootMouseUp$: actions.mouseUp$,
-  //     rootMouseMove$: actions.mouseMove$,
-  //     prop$: xs.of({ position: [1.5, 0, 0], axis: 'x' }),
-  //   }
-  // );
-
   // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
   // xs.of([mesh.DOM]);
 
@@ -101,16 +89,27 @@ function Lathe(sources) {
   // const totalVerts$ = xs.create();
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
 
+  const tempAchor = MovementAnchor(
+    {
+      DOM,
+      rootMouseUp$: actions.mouseUp$,
+      rootMouseMove$: actions.mouseMove$,
+      prop$: xs.of({ position: [1.5, 0, 0], axis: 'x' }),
+    }
+  );
+
   const meshProp$ = vertCollection$;// .map(prop('verts'));
   const mesh = isolate(MeshEntity, 'Mesh')({
     ...sources,
     altKeyState$,
     shiftKeyState$,
+    anchorUpdate$: tempAchor.update$,
+    anchorHoldState$: tempAchor.holdState$,
     rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });
 
-  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM);
+  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, tempAchor.DOM);
   const vdom$ = view(state, childVnodes$);
 
   const sinks = {

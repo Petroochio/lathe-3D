@@ -16,23 +16,33 @@ function intent(sources) {
 
 function model(sources, actions) {
   const { mouseUp$ } = actions;
-  const { initialPos, rootInput$, altKeyState$, shiftKeyState$ } = sources;
-  const position$ = mouseUp$
-    .mapTo([0.01, 0, 0])
-    .fold(zipWith(add), initialPos)
-    .startWith(initialPos)
-    .map(join(' '));
+  const {
+    initialPos,
+    rootInput$,
+    altKeyState$,
+    shiftKeyState$,
+    anchorHoldState$,
+    anchorUpdate$ } = sources;
 
-  const selectTrigger$ = mouseUp$.compose(sampleCombine(altKeyState$))
+  const selectTrigger$ = mouseUp$
+    .compose(sampleCombine(altKeyState$))
     .filter(compose(not, nth(1)))
     .mapTo(true);
 
-  const deselectTrigger$ = rootInput$.compose(sampleCombine(altKeyState$, shiftKeyState$))
+  const deselectTrigger$ = rootInput$
+    .compose(sampleCombine(altKeyState$, shiftKeyState$, anchorHoldState$))
     .filter(compose(not, any(equals(true)), tail))
     .mapTo(false);
 
   const selected$ = xs.merge(selectTrigger$, deselectTrigger$).startWith(false);
   const color$ = selected$.map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
+  const position$ = anchorUpdate$
+    .compose(sampleCombine(selected$))
+    .filter(nth(1))
+    .map(nth(0))
+    .fold(zipWith(add), initialPos)
+    .startWith(initialPos)
+    .map(join(' '));
 
   return {
     position$,
