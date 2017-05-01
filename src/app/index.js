@@ -80,8 +80,10 @@ function Lathe(sources) {
   const camera = Camera({ DOM, altKeyState$, ...actions });
 
   // Proxy bisnuz for handlers
+  const meshStateProxy$ = xs.create();
+  meshStateProxy$.subscribe({ next: x => console.log(x) })
+
   const initialVerts$ = xs.fromArray(initialVerts);
-  // const totalVerts$ = xs.create();
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
 
   const movementAnchor = MovementAnchorGroup({
@@ -91,7 +93,7 @@ function Lathe(sources) {
     prop$: xs.of([1.5, 0, 0]),
   });
 
-  const meshProp$ = vertCollection$;// .map(prop('verts'));
+  const meshProp$ = vertCollection$;
   const mesh = isolate(MeshEntity, 'Mesh')({
     ...sources,
     altKeyState$,
@@ -101,6 +103,7 @@ function Lathe(sources) {
     rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });
+  meshStateProxy$.imitate(mesh.meshState$);
 
   const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, movementAnchor.DOM);
   const vdom$ = view(state, childVnodes$);

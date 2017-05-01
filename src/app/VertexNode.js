@@ -41,8 +41,7 @@ function model(sources, actions) {
     .filter(nth(1))
     .map(nth(0))
     .fold(zipWith(add), initialPos)
-    .startWith(initialPos)
-    .map(join(' '));
+    .startWith(initialPos);
 
   return {
     position$,
@@ -52,7 +51,7 @@ function model(sources, actions) {
 }
 
 function view(state) {
-  return xs.combine(state.position$, state.color$)
+  return xs.combine(state.position$.map(join(' ')), state.color$)
     .map(([position, color]) =>
       aEntity(
         '.vertex-node',

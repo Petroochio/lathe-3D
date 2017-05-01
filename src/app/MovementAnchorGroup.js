@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import isolate from '@cycle/isolate';
-import { add, any, equals, zipWith } from 'ramda';
+import { add, any, apply, equals, zipWith } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
 import MovementAnchor from './MovementAnchor';
@@ -45,9 +45,11 @@ function MovementAnchorGroup(sources) {
     )
     .map(any(equals(true)));
 
-  const position$ = xs.merge(sources.prop$, update$)
+  const calcPosition$ = update$
     .fold(zipWith(add), [0, 0, 0])
     .startWith([0, 0, 0]);
+  const position$ = xs.combine(calcPosition$, sources.prop$)
+    .map(apply(zipWith(add)));
   const vdom$ = view(position$, childrenVnode$);
   const sinks = {
     update$,

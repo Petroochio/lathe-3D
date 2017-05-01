@@ -1,6 +1,5 @@
 import xs from 'xstream';
-import isolate from '@cycle/isolate';
-import { map, prop, addIndex, always } from 'ramda';
+import { compose, join, map, prop } from 'ramda';
 import Collection from '@cycle/collection';
 
 import { aEntity } from './utils/AframeHyperscript';
@@ -44,12 +43,13 @@ function MeshEntity(sources) {
 
   const vertNodes$ = Collection(VertexNode, sources, prop$.map(vert => ({ initialPos: vert })));
   const vertDoms$ = Collection.pluck(vertNodes$, prop('DOM'));
-  const vertStates$ = Collection.pluck(vertNodes$, prop('state$')).map(map(prop('position')));
+  const vertStates$ = Collection.pluck(vertNodes$, prop('state$'));
+  const vertPositions$ = vertStates$.map(map(compose(join(' '), prop('position'))));
 
-  const vdom$ = view(vertStates$, vertDoms$);
+  const vdom$ = view(vertPositions$, vertDoms$);
 
   const sinks = {
-    vertStates$,
+    meshState$: vertStates$,
     DOM: vdom$,
   };
   return sinks;
