@@ -1,35 +1,31 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
-import { add, join, nth, prop, zipWith } from 'ramda';
+import { __, compose, nth, prop } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 const AXIS_CONFIGS = {
   x: {
     color: '#ff0000',
-    position: [1, 0, 0],
+    position: '0.3 0 0',
     rotation: '0 0 0',
   },
   y: {
-    color: '#ff0000',
-    position: [0, 1, 0],
-    rotation: '0 0 0',
+    color: '#0000ff',
+    position: '0 0.3 0',
+    rotation: '0 0 90',
   },
   z: {
-    color: '#ff0000',
-    position: [0, 0, 1],
-    rotation: '0 0 0',
+    color: '#00ff00',
+    position: '0 0 0.3',
+    rotation: '0 90 0',
   },
 };
 
-function getAxisProps(props) {
-  const [position, { axis }] = props;
-  const config = AXIS_CONFIGS[axis];
-  const axisProps = {
-    ...config,
-    position: join(' ')(zipWith(add, position, config.position)),
-  };
-  return axisProps;
-}
+const axisMappers = {
+  x: ({ dx }) => [dx / 100, 0, 0],
+  y: ({ dy }) => [0, -dy / 100, 0],
+  z: ({ dx }) => [0, 0, dx / 100],
+};
 
 function intent(sources) {
   const { DOM, prop$, rootMouseUp$, rootMouseMove$ } = sources;
@@ -49,18 +45,12 @@ function model(actions) {
   const isHeld$ = xs.merge(mouseDown$.mapTo(true), rootMouseUp$.mapTo(false));
 
   const movement$ = rootMouseMove$
-    .compose(sampleCombine(isHeld$))
-    .filter(nth(1))
-    .map(nth(0))
-    .mapTo([0.01, 0, 0])
+    .compose(sampleCombine(prop$.map(prop('axis')), isHeld$))
+    .filter(nth(2))
+    .map(([delta, axis]) => axisMappers[axis](delta))
     .startWith([0, 0, 0]);
 
-  const position$ = xs.merge(prop$.map(prop('position')), movement$)
-    .fold(zipWith(add), [0, 0, 0]);
-
-  const axisProps$ = position$
-    .compose(sampleCombine(prop$))
-    .map(getAxisProps);
+  const axisProps$ = prop$.map(compose(prop(__, AXIS_CONFIGS), prop('axis')));
 
   const states = {
     movement$,
@@ -77,7 +67,8 @@ function view(state) {
       {
         attrs: {
           material: `flatShading: true; color: ${props.color}`,
-          geometry: 'primitive: sphere; radius: 1; segmentsWidth: 10; segmentsHeight: 10;',
+          geometry: 'primitive: sphere; radius: 0.2; segmentsWidth: 4; segmentsHeight: 2;',
+          scale: '1 0.5 0.5',
           color: props.color,
           rotation: props.rotation,
           position: props.position,

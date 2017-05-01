@@ -7,7 +7,7 @@ import { aScene, aSky } from './utils/AframeHyperscript';
 import createKeyPress from './utils/CreateKeyPress';
 // Components
 import MeshEntity from './MeshEntity';
-import MovementAnchor from './MovementAnchor';
+import MovementAnchorGroup from './MovementAnchorGroup';
 import Camera from './Camera';
 
 const sky = aSky({ attrs: { color: '#000022' } });
@@ -84,27 +84,25 @@ function Lathe(sources) {
   // const totalVerts$ = xs.create();
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
 
-  const tempAchor = MovementAnchor(
-    {
-      DOM,
-      rootMouseUp$: actions.mouseUp$,
-      rootMouseMove$: actions.mouseMove$,
-      prop$: xs.of({ position: [1.5, 0, 0], axis: 'x' }),
-    }
-  );
+  const movementAnchor = MovementAnchorGroup({
+    DOM,
+    rootMouseUp$: actions.mouseUp$,
+    rootMouseMove$: actions.mouseMove$,
+    prop$: xs.of([1.5, 0, 0]),
+  });
 
   const meshProp$ = vertCollection$;// .map(prop('verts'));
   const mesh = isolate(MeshEntity, 'Mesh')({
     ...sources,
     altKeyState$,
     shiftKeyState$,
-    anchorUpdate$: tempAchor.update$,
-    anchorHoldState$: tempAchor.holdState$,
+    anchorUpdate$: movementAnchor.update$,
+    anchorHoldState$: movementAnchor.holdState$,
     rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });
 
-  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, tempAchor.DOM);
+  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, movementAnchor.DOM);
   const vdom$ = view(state, childVnodes$);
 
   const sinks = {
