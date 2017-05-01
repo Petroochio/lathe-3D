@@ -2,7 +2,7 @@
 // Component for aframe cameras that emits mouse events on aframe tags, and do it cycle style
 import AFRAME from 'aframe';
 import { Raycaster, Vector2 } from 'three';
-import { fromEvent } from 'most';
+import xs from 'xstream';
 import { curry, flatten, find, isNil, not, pipe } from 'ramda';
 
 const sharedRaycaster = new Raycaster();
@@ -27,10 +27,10 @@ function setRaycastFromCamera(raycaster, camera, vector) {
   raycaster.ray.origin.setFromMatrixPosition(camera.matrixWorld);
 
   raycaster.ray.direction
-  .set(vector.x, vector.y, 0.5)
-  .unproject(camera)
-  .sub(raycaster.ray.origin)
-  .normalize();
+    .set(vector.x, vector.y, 0.5)
+    .unproject(camera)
+    .sub(raycaster.ray.origin)
+    .normalize();
 
   return raycaster;
 }
@@ -78,12 +78,29 @@ function setMouseVector(evt) {
   return mouseVector;
 }
 
+function DomEventProducer(eventName, element) {
+  const producer = {
+    start: listener => element.addEventListener(eventName, e => listener.next(e)),
+    stop: () => false,
+  };
+  return producer;
+}
+
+function DomEventListener(eventName, element) {
+  const listener = {
+    next: emitEvent(eventName, element),
+    error: e => console.error(e),
+    complete: () => console.log('complete'),
+  };
+  return listener;
+}
+
 function intent(sources) {
   const { el } = sources;
-  const mouseDown$ = fromEvent('mousedown', el.sceneEl.canvas);
-  const mouseMove$ = fromEvent('mousemove', el.sceneEl.canvas);
-  const mouseUp$ = fromEvent('mouseup', el.sceneEl.canvas);
-  const mouseOut$ = fromEvent('mouseout', el.sceneEl.canvas);
+  const mouseDown$ = xs.create(DomEventProducer('mousedown', el.sceneEl.canvas));
+  const mouseMove$ = xs.create(DomEventProducer('mousemove', el.sceneEl.canvas));
+  const mouseUp$ = xs.create(DomEventProducer('mouseup', el.sceneEl.canvas));
+  const mouseOut$ = xs.create(DomEventProducer('mouseout', el.sceneEl.canvas));
 
   const intents = {
     mouseDown$,
@@ -97,29 +114,29 @@ function intent(sources) {
 function model(actions, element) {
   const { mouseDown$, mouseMove$, mouseUp$, mouseOut$ } = actions;
   mouseDown$
-  .map(setMouseVector)
-  .map(getIntersect(element))
-  .filter(pipe(isNil, not))
-  .forEach(emitEvent('mousedown', element));
+    .map(setMouseVector)
+    .map(getIntersect(element))
+    .filter(pipe(isNil, not))
+    .subscribe(DomEventListener('mousedown', element));
 
   // TODO Needs to be altered to get delta?
   mouseMove$
-  .map(setMouseVector)
-  .map(getIntersect(element))
-  .filter(pipe(isNil, not))
-  .forEach(emitEvent('mousemove', element));
+    .map(setMouseVector)
+    .map(getIntersect(element))
+    .filter(pipe(isNil, not))
+    .subscribe(DomEventListener('mousemove', element));
 
   mouseUp$
-  .map(setMouseVector)
-  .map(getIntersect(element))
-  .filter(pipe(isNil, not))
-  .forEach(emitEvent('mouseup', element));
+    .map(setMouseVector)
+    .map(getIntersect(element))
+    .filter(pipe(isNil, not))
+    .subscribe(DomEventListener('mouseup', element));
 
   mouseOut$
-  .map(setMouseVector)
-  .map(getIntersect(element))
-  .filter(pipe(isNil, not))
-  .forEach(emitEvent('mouseout', element));
+    .map(setMouseVector)
+    .map(getIntersect(element))
+    .filter(pipe(isNil, not))
+    .subscribe(DomEventListener('mouseout', element));
 }
 
 AFRAME.registerComponent('mouse-events',

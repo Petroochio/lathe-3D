@@ -1,5 +1,5 @@
 import xs from 'xstream';
-import { map, propEq, always } from 'ramda';
+import { always } from 'ramda';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 
@@ -52,12 +52,7 @@ function intent(sources) {
 }
 
 function model(actions) {
-  // const children$ = most.combineArray(combineAllStreams, [camera.DOM, mesh.DOM, tempAchor.DOM]);
-  // xs.of([mesh.DOM]);
-
   const state = {
-    // meshReducer$: mesh.onion,
-    // vertexPositions$: meshProp$,
     altKeyState$: createKeyPress('Alt', actions.keyDown$, actions.keyUp$),
     shiftKeyState$: createKeyPress('Shift', actions.keyDown$, actions.keyUp$),
     initialReducer$: xs.of(always({ verts: initialVerts })),
@@ -85,7 +80,7 @@ function Lathe(sources) {
   const camera = Camera({ DOM, altKeyState$, ...actions });
 
   // Proxy bisnuz for handlers
-  const initialVerts$ = xs.from(initialVerts);
+  const initialVerts$ = xs.fromArray(initialVerts);
   // const totalVerts$ = xs.create();
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
 

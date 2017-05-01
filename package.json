@@ -38,7 +38,6 @@
     "@cycle/xstream-run": "^4.2.0",
     "aframe": "^0.3.2",
     "babel-preset-stage-0": "^6.16.0",
-    "most": "^1.0.4",
     "ramda": "^0.22.1",
     "three": "^0.82.1",
     "xstream": "^6.2.0"

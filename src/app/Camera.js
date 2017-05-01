@@ -43,17 +43,6 @@ function intent(sources) {
 }
 
 function model(actions, sources) {
-  const isAltKey = propEq('key', 'Alt');
-  const altKeyDown$ = sources.keyDown$
-    .filter(isAltKey)
-    .mapTo(true);
-
-  const altKeyUp$ = sources.keyUp$
-    .filter(isAltKey)
-    .mapTo(false);
-
-  const altKeyState$ = xs.merge(altKeyDown$, altKeyUp$);
-
   const rotation$ = xs.combine(actions.mouseDrag$, sources.altKeyState$)
     .filter(nth(1))
     .map(nth(0))
