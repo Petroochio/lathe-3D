@@ -1,17 +1,18 @@
 import xs from 'xstream';
 import isolate from '@cycle/isolate';
-import { add, any, apply, equals, zipWith } from 'ramda';
+import { any, equals, toString } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
 import MovementAnchor from './MovementAnchor';
 
 function view(position$, children$) {
   return xs.combine(position$, children$)
-    .map(([position, anchors]) =>
+    .map(([{ isVisible, position }, anchors]) =>
       aEntity(
         '.movement-anchor-group',
         {
           attrs: {
+            visible: toString(isVisible),
             position: position.join(' '),
           },
         },
@@ -45,11 +46,6 @@ function MovementAnchorGroup(sources) {
     )
     .map(any(equals(true)));
 
-  // const calcPosition$ = update$
-  //   .fold(zipWith(add), [0, 0, 0])
-  //   .startWith([0, 0, 0]);
-  // const position$ = xs.combine(calcPosition$, sources.prop$)
-  //   .map(apply(zipWith(add)));
   const vdom$ = view(sources.prop$, childrenVnode$);
   const sinks = {
     update$,

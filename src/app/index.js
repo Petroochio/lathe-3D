@@ -84,12 +84,16 @@ function Lathe(sources) {
   const camera = Camera({ DOM, altKeyState$, ...actions });
 
   // Proxy bisnuz for handlers
-  const movementAnchorProp$ = meshStateProxy$
-    .map(filter(prop('isSelected')))
+  // Should all of this be in the movement anchor? probs
+  const selectedVerts$ = meshStateProxy$.map(filter(prop('isSelected')));
+  const hasSelectedVerts$ = selectedVerts$.map(compose(lte(1), length));
+  const movementAnchorPosition$ = selectedVerts$
     .filter(compose(lte(1), length))
     .map(map(prop('position')))
     .map(compose(map(mean), transpose))
     .startWith([0, 0, 0]);
+  const movementAnchorProp$ = xs.combine(hasSelectedVerts$, movementAnchorPosition$)
+    .map(([isVisible, position]) => ({ isVisible, position }));
 
   const initialVerts$ = xs.fromArray(initialVerts);
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
