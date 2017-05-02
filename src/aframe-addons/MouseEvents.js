@@ -3,7 +3,7 @@
 import AFRAME from 'aframe';
 import { Raycaster, Vector2 } from 'three';
 import xs from 'xstream';
-import { curry, flatten, find, isNil, not, pipe } from 'ramda';
+import { compose, curry, equals, flatten, find, isNil, not, path, pipe } from 'ramda';
 
 const sharedRaycaster = new Raycaster();
 const mouseVector = new Vector2();
@@ -38,7 +38,9 @@ function setRaycastFromCamera(raycaster, camera, vector) {
 function intersectFunc(element, vector) {
   const sceneObj3D = element.sceneEl.object3D;
   const camera = element.getObject3D('camera');
-  const allChildren = flatten(getEntityChildren(sceneObj3D));
+  const allChildren = flatten(getEntityChildren(sceneObj3D))
+    .filter(compose(not, equals('disable-mouse'), path(['el', 'className'])));
+
   const intersects = setRaycastFromCamera(sharedRaycaster, camera, vector)
     .intersectObjects(allChildren);
 

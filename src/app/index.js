@@ -76,6 +76,7 @@ function view(state, children$) {
 
 function Lathe(sources) {
   const { DOM } = sources;
+  const meshStateProxy$ = xs.create();
 
   const actions = intent(sources);
   const state = model(actions);
@@ -83,7 +84,6 @@ function Lathe(sources) {
   const camera = Camera({ DOM, altKeyState$, ...actions });
 
   // Proxy bisnuz for handlers
-  const meshStateProxy$ = xs.create();
   const movementAnchorProp$ = meshStateProxy$
     .map(filter(prop('isSelected')))
     .filter(compose(lte(1), length))

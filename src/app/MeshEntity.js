@@ -25,10 +25,10 @@ function view(vertState$, vertexDom$) {
   return xs.combine(vertState$, vertexDom$)
     .map(([verts, vertexDoms]) =>
       aEntity(
-        '.edit-mesh',
+        '#mesh.disable-mouse',
         {
           attrs: {
-            material: 'color: #222222; flatShading: true;',
+            material: 'color: #222222; flatShading: true; opacity: 0.7;',
             geometry: `primitive: editable; faces: ${faces.join(',')}; vertices: ${verts.join(',')};`,
             position: '0 0 0',
           },
