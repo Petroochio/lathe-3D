@@ -45,12 +45,12 @@ function MovementAnchorGroup(sources) {
     )
     .map(any(equals(true)));
 
-  const calcPosition$ = update$
-    .fold(zipWith(add), [0, 0, 0])
-    .startWith([0, 0, 0]);
-  const position$ = xs.combine(calcPosition$, sources.prop$)
-    .map(apply(zipWith(add)));
-  const vdom$ = view(position$, childrenVnode$);
+  // const calcPosition$ = update$
+  //   .fold(zipWith(add), [0, 0, 0])
+  //   .startWith([0, 0, 0]);
+  // const position$ = xs.combine(calcPosition$, sources.prop$)
+  //   .map(apply(zipWith(add)));
+  const vdom$ = view(sources.prop$, childrenVnode$);
   const sinks = {
     update$,
     holdState$,

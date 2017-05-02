@@ -1,7 +1,10 @@
 import xs from 'xstream';
-import { always } from 'ramda';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
+import {
+  always, compose, length, filter, lte,
+  map, mean, prop, transpose
+} from 'ramda';
 
 import { aScene, aSky } from './utils/AframeHyperscript';
 import createKeyPress from './utils/CreateKeyPress';
@@ -81,7 +84,12 @@ function Lathe(sources) {
 
   // Proxy bisnuz for handlers
   const meshStateProxy$ = xs.create();
-  meshStateProxy$.subscribe({ next: x => console.log(x) })
+  const movementAnchorProp$ = meshStateProxy$
+    .map(filter(prop('isSelected')))
+    .filter(compose(lte(1), length))
+    .map(map(prop('position')))
+    .map(compose(map(mean), transpose))
+    .startWith([0, 0, 0]);
 
   const initialVerts$ = xs.fromArray(initialVerts);
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
@@ -90,7 +98,7 @@ function Lathe(sources) {
     DOM,
     rootMouseUp$: actions.mouseUp$,
     rootMouseMove$: actions.mouseMove$,
-    prop$: xs.of([1.5, 0, 0]),
+    prop$: movementAnchorProp$,
   });
 
   const meshProp$ = vertCollection$;

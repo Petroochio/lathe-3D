@@ -1,6 +1,9 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
-import { add, any, compose, equals, join, not, nth, tail, zipWith } from 'ramda';
+import {
+  add, any, compose, equals, join,
+  not, nth, tail, zipWith
+} from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
 
