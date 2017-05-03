@@ -11,8 +11,8 @@ function renderCam(newAttr) {
 
 function calcRotation(oldRot, deltaRot) {
   const newRot = {
-    xdeg: oldRot.xdeg - (deltaRot.dx / 10),
-    ydeg: oldRot.ydeg - (deltaRot.dy / 10),
+    xdeg: (oldRot.xdeg - (deltaRot.dx / 10)) % 360,
+    ydeg: (oldRot.ydeg - (deltaRot.dy / 10)) % 360,
   };
   return newRot;
 }
@@ -46,7 +46,7 @@ function model(actions, sources) {
   const rotation$ = xs.combine(actions.mouseDrag$, sources.altKeyState$)
     .filter(nth(1))
     .map(nth(0))
-    .fold(calcRotation, { xdeg: 0, ydeg: 0 });
+    .fold(calcRotation, { xdeg: 0, ydeg: 0 }).debug();
 
   const zoom$ = xs.combine(actions.mouseWheel$, sources.altKeyState$)
     .filter(nth(1))
@@ -85,6 +85,7 @@ function Camera(sources) {
   const vdom$ = view(state);
 
   const sinks = {
+    rotation$: state.rotation$,
     DOM: vdom$,
   };
   return sinks;

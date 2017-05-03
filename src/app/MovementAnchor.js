@@ -21,33 +21,32 @@ const AXIS_CONFIGS = {
   },
 };
 
+// TODO: This is nasty and imperative, plx fix
 const axisMappers = {
-  x: ({ dx }) => [dx / 100, 0, 0],
-  y: ({ dy }) => [0, -dy / 100, 0],
-  z: ({ dx }) => [0, 0, dx / 100],
+  x: ({ dx }, { xdeg }) => [(dx / 100) * ((xdeg >= 90 && xdeg <= 270) || (xdeg <= -90 && xdeg >= -270) ? -1 : 1), 0, 0],
+  y: ({ dy }, { ydeg }) => [0, (dy / 100) * ((ydeg >= -90 && ydeg < 90) ? -1 : 1), 0],
+  z: ({ dx }, { xdeg }) => [0, 0, (dx / 100) * ((xdeg > -180 && xdeg <= 0) || xdeg > 180 ? 1 : -1)],
 };
 
 function intent(sources) {
-  const { DOM, prop$, rootMouseUp$, rootMouseMove$ } = sources;
+  const { DOM } = sources;
   const mouseDown$ = DOM.select('.movement-anchor').events('mousedown');
 
   const intents = {
-    rootMouseUp$,
-    rootMouseMove$,
     mouseDown$,
-    prop$,
   };
   return intents;
 }
 
-function model(actions) {
-  const { mouseDown$, rootMouseUp$, rootMouseMove$, prop$ } = actions;
+function model(sources, actions) {
+  const { cameraRotation$, rootMouseUp$, rootMouseMove$, prop$ } = sources;
+  const { mouseDown$ } = actions;
   const isHeld$ = xs.merge(mouseDown$.mapTo(true), rootMouseUp$.mapTo(false));
 
   const movement$ = rootMouseMove$
-    .compose(sampleCombine(prop$.map(prop('axis')), isHeld$))
-    .filter(nth(2))
-    .map(([delta, axis]) => axisMappers[axis](delta))
+    .compose(sampleCombine(prop$.map(prop('axis')), cameraRotation$, isHeld$))
+    .filter(nth(3))
+    .map(([delta, axis, rotation]) => axisMappers[axis](delta, rotation))
     .startWith([0, 0, 0]);
 
   const axisProps$ = prop$.map(compose(prop(__, AXIS_CONFIGS), prop('axis')));
@@ -85,7 +84,7 @@ function view(state) {
  */
 function MovementAnchor(sources) {
   const actions = intent(sources);
-  const state = model(actions);
+  const state = model(sources, actions);
   const vdom$ = view(state);
 
   const sinks = {

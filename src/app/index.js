@@ -100,6 +100,7 @@ function Lathe(sources) {
 
   const movementAnchor = MovementAnchorGroup({
     DOM,
+    cameraRotation$: camera.rotation$,
     rootMouseUp$: actions.mouseUp$,
     rootMouseMove$: actions.mouseMove$,
     prop$: movementAnchorProp$,
