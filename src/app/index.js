@@ -2,19 +2,19 @@ import xs from 'xstream';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {
-  always, compose, length, filter, lte,
-  map, mean, prop, transpose
+  compose, length, filter, lte, join,
+  map, mean, prop, split, transpose
 } from 'ramda';
 
 import { aScene, aSky } from './utils/AframeHyperscript';
 import createKeyPress from './utils/CreateKeyPress';
 // Components
 import MeshEntity from './MeshEntity';
-import MovementAnchorGroup from './MovementAnchorGroup';
+import TranslateAnchorGroup from './TranslateAnchorGroup';
 import Camera from './Camera';
 
-const sky = aSky({ attrs: { color: '#000022' } });
-const initialVerts = [
+const sky = aSky({ attrs: { color: '#f5f5f5' } });
+const cubeVerts = [
   [1, 1, 1],
   [1, 1, -1],
   [1, -1, 1],
@@ -58,7 +58,6 @@ function model(actions) {
   const state = {
     altKeyState$: createKeyPress('Alt', actions.keyDown$, actions.keyUp$),
     shiftKeyState$: createKeyPress('Shift', actions.keyDown$, actions.keyUp$),
-    initialReducer$: xs.of(always({ verts: initialVerts })),
   };
   return state;
 }
@@ -75,7 +74,7 @@ function view(state, children$) {
 }
 
 function Lathe(sources) {
-  const { DOM } = sources;
+  const { DOM, storage } = sources;
   const meshStateProxy$ = xs.create();
 
   const actions = intent(sources);
@@ -95,10 +94,13 @@ function Lathe(sources) {
   const movementAnchorProp$ = xs.combine(hasSelectedVerts$, movementAnchorPosition$)
     .map(([isVisible, position]) => ({ isVisible, position }));
 
-  const initialVerts$ = xs.fromArray(initialVerts);
+  const initialVerts$ = storage.loadData('mesh')
+    .map(mesh => (mesh ? compose(map(split(' ')), split(','))(mesh) : cubeVerts))
+    .map(xs.fromArray)
+    .flatten();
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
 
-  const movementAnchor = MovementAnchorGroup({
+  const translateAnchor = TranslateAnchorGroup({
     DOM,
     cameraRotation$: camera.rotation$,
     rootMouseUp$: actions.mouseUp$,
@@ -111,18 +113,24 @@ function Lathe(sources) {
     ...sources,
     altKeyState$,
     shiftKeyState$,
-    anchorUpdate$: movementAnchor.update$,
-    anchorHoldState$: movementAnchor.holdState$,
+    anchorUpdate$: translateAnchor.update$,
+    anchorHoldState$: translateAnchor.holdState$,
     rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });
   meshStateProxy$.imitate(mesh.meshState$);
 
-  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, movementAnchor.DOM);
+  const saveState$ = meshStateProxy$
+    .map(map(prop('position')))
+    .map(compose(join(','), map(join(' '))))
+    .map(value => ({ key: 'mesh', value }));
+
+  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, translateAnchor.DOM);
   const vdom$ = view(state, childVnodes$);
 
   const sinks = {
     DOM: vdom$,
+    storage: saveState$,
   };
   return sinks;
 }

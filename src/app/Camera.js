@@ -46,7 +46,7 @@ function model(actions, sources) {
   const rotation$ = xs.combine(actions.mouseDrag$, sources.altKeyState$)
     .filter(nth(1))
     .map(nth(0))
-    .fold(calcRotation, { xdeg: 0, ydeg: 0 }).debug();
+    .fold(calcRotation, { xdeg: 0, ydeg: 0 });
 
   const zoom$ = xs.combine(actions.mouseWheel$, sources.altKeyState$)
     .filter(nth(1))

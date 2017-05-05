@@ -3,7 +3,7 @@ import isolate from '@cycle/isolate';
 import { any, equals, toString } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
-import MovementAnchor from './MovementAnchor';
+import TranslateAnchor from './TranslateAnchor';
 
 function view(position$, children$) {
   return xs.combine(position$, children$)
@@ -21,18 +21,18 @@ function view(position$, children$) {
     );
 }
 
-function MovementAnchorGroup(sources) {
-  const xAnchor = isolate(MovementAnchor, 'xAnchor')({
+function TranslateAnchorGroup(sources) {
+  const xAnchor = isolate(TranslateAnchor, 'xAnchor')({
     ...sources,
     prop$: xs.of({ axis: 'x' }),
   });
 
-  const yAnchor = isolate(MovementAnchor, 'yAnchor')({
+  const yAnchor = isolate(TranslateAnchor, 'yAnchor')({
     ...sources,
     prop$: xs.of({ axis: 'y' }),
   });
 
-  const zAnchor = isolate(MovementAnchor, 'zAnchor')({
+  const zAnchor = isolate(TranslateAnchor, 'zAnchor')({
     ...sources,
     prop$: xs.of({ axis: 'z' }),
   });
@@ -54,4 +54,4 @@ function MovementAnchorGroup(sources) {
   };
   return sinks;
 }
-export default MovementAnchorGroup;
+export default TranslateAnchorGroup;
