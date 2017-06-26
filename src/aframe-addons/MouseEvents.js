@@ -113,32 +113,22 @@ function intent(sources) {
   return intents;
 }
 
+function pushDomEvents(type, element) {
+  return event$ => event$
+    .map(setMouseVector)
+    .map(getIntersect(element))
+    .filter(pipe(isNil, not))
+    .subscribe(DomEventListener(type, element));
+}
+
 function model(actions, element) {
   const { mouseDown$, mouseMove$, mouseUp$, mouseOut$ } = actions;
-  mouseDown$
-    .map(setMouseVector)
-    .map(getIntersect(element))
-    .filter(pipe(isNil, not))
-    .subscribe(DomEventListener('mousedown', element));
 
+  mouseDown$.compose(pushDomEvents('mousedown', element));
   // TODO Needs to be altered to get delta?
-  mouseMove$
-    .map(setMouseVector)
-    .map(getIntersect(element))
-    .filter(pipe(isNil, not))
-    .subscribe(DomEventListener('mousemove', element));
-
-  mouseUp$
-    .map(setMouseVector)
-    .map(getIntersect(element))
-    .filter(pipe(isNil, not))
-    .subscribe(DomEventListener('mouseup', element));
-
-  mouseOut$
-    .map(setMouseVector)
-    .map(getIntersect(element))
-    .filter(pipe(isNil, not))
-    .subscribe(DomEventListener('mouseout', element));
+  mouseMove$.compose(pushDomEvents('mousemove', element));
+  mouseUp$.compose(pushDomEvents('mouseup', element));
+  mouseOut$.compose(pushDomEvents('mouseout', element));
 }
 
 AFRAME.registerComponent('mouse-events',
