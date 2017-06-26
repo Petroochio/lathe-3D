@@ -86,7 +86,7 @@ function view(state) {
  *    axis - 'x', 'y', or 'z'
  *    position - [x, y, z] coords
  */
-function TranslateAnchor(sources) {
+function TransformAnchor(sources) {
   const actions = intent(sources);
   const state = model(sources, actions);
   const vdom$ = view(state);
@@ -99,4 +99,4 @@ function TranslateAnchor(sources) {
   return sinks;
 }
 
-export default TranslateAnchor;
+export default TransformAnchor;

@@ -1,8 +1,8 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
 import {
-  add, any, compose, equals, join,
-  not, nth, tail, zipWith
+  any, compose, equals, join,
+  not, nth, tail
 } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
@@ -25,7 +25,7 @@ function model(sources, actions) {
     ignoreKeyState$,
     shiftKeyState$,
     anchorHoldState$,
-    anchorUpdate$ } = sources;
+    transformUpdate$ } = sources;
 
   const selectTrigger$ = mouseUp$
     .compose(sampleCombine(ignoreKeyState$))
@@ -39,7 +39,7 @@ function model(sources, actions) {
 
   const selected$ = xs.merge(selectTrigger$, deselectTrigger$).startWith(false);
   const color$ = selected$.map(isSelected => (isSelected ? '#ff0000' : '#aaaaff'));
-  const position$ = anchorUpdate$
+  const position$ = transformUpdate$
     .compose(sampleCombine(selected$))
     .filter(nth(1))
     .map(nth(0))

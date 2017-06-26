@@ -10,7 +10,7 @@ import { aScene, aSky } from './utils/AframeHyperscript';
 import createKeyPress from './utils/CreateKeyPress';
 // Components
 import MeshEntity from './MeshEntity';
-import TranslateAnchorGroup from './TranslateAnchorGroup';
+import TransformAnchorGroup from './TransformAnchorGroup';
 import Camera from './Camera';
 
 const sky = aSky({ attrs: { color: '#f5f5f5' } });
@@ -113,7 +113,7 @@ function Lathe(sources) {
     .flatten();
   const vertCollection$ = initialVerts$; // xs.merge(initialVerts$, totalVerts$);
 
-  const translateAnchor = TranslateAnchorGroup({
+  const transformAnchor = TransformAnchorGroup({
     DOM,
     cameraRotation$: camera.rotation$,
     rootMouseUp$: actions.mouseUp$,
@@ -126,8 +126,8 @@ function Lathe(sources) {
     ...sources,
     shiftKeyState$,
     ignoreKeyState$,
-    anchorUpdate$: translateAnchor.update$,
-    anchorHoldState$: translateAnchor.holdState$,
+    transformUpdate$: transformAnchor.update$,
+    anchorHoldState$: transformAnchor.holdState$,
     rootInput$: actions.mouseDown$,
     prop$: meshProp$,
   });
@@ -138,7 +138,7 @@ function Lathe(sources) {
     .map(compose(join(','), map(join(' '))))
     .map(value => ({ key: 'mesh', value }));
 
-  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, translateAnchor.DOM);
+  const childVnodes$ = xs.combine(camera.DOM, mesh.DOM, transformAnchor.DOM);
   const vdom$ = view(state, childVnodes$);
 
   const sinks = {
