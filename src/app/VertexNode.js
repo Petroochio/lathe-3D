@@ -22,18 +22,18 @@ function model(sources, actions) {
   const {
     initialPos,
     rootInput$,
-    altKeyState$,
+    ignoreKeyState$,
     shiftKeyState$,
     anchorHoldState$,
     anchorUpdate$ } = sources;
 
   const selectTrigger$ = mouseUp$
-    .compose(sampleCombine(altKeyState$))
+    .compose(sampleCombine(ignoreKeyState$))
     .filter(compose(not, nth(1)))
     .mapTo(true);
 
   const deselectTrigger$ = rootInput$
-    .compose(sampleCombine(altKeyState$, shiftKeyState$, anchorHoldState$))
+    .compose(sampleCombine(ignoreKeyState$, shiftKeyState$, anchorHoldState$))
     .filter(compose(not, any(equals(true)), tail))
     .mapTo(false);
 

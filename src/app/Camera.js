@@ -1,10 +1,10 @@
 import { h } from '@cycle/dom';
 import xs from 'xstream';
-import { nth, pick, prop, propEq, clamp } from 'ramda';
+import { nth, pick, prop, clamp } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
 
-function renderCam(newAttr) {
+function renderCamera(newAttr) {
   const defaultAttr = { camera: true, 'mouse-events': true };
   return h('a-entity', { attrs: { ...defaultAttr, ...newAttr } });
 }
@@ -15,6 +15,13 @@ function calcRotation(oldRot, deltaRot) {
     ydeg: (oldRot.ydeg - (deltaRot.dy / 10)) % 360,
   };
   return newRot;
+}
+
+function calcPosition(oldPos, deltaPos) {
+  return {
+    x: oldPos.x - (deltaPos.dx / 100),
+    y: oldPos.y + (deltaPos.dy / 100),
+  };
 }
 
 function intent(sources) {
@@ -48,6 +55,13 @@ function model(actions, sources) {
     .map(nth(0))
     .fold(calcRotation, { xdeg: 0, ydeg: 0 });
 
+  const position$ = xs.of({ x: 0, y: 0 });
+  // Unused panning code
+  // const position$ = xs.combine(actions.mouseDrag$, sources.spaceKeyState$)
+  //   .filter(nth(1))
+  //   .map(nth(0))
+  //   .fold(calcPosition, { x: 0, y: 0 });
+
   const zoom$ = xs.combine(actions.mouseWheel$, sources.altKeyState$)
     .filter(nth(1))
     .map(nth(0))
@@ -56,15 +70,16 @@ function model(actions, sources) {
 
   const state = {
     rotation$,
+    position$,
     zoom$,
   };
   return state;
 }
 
 function view(state) {
-  const state$ = xs.combine(state.rotation$, state.zoom$);
+  const state$ = xs.combine(state.rotation$, state.zoom$, state.position$);
 
-  return state$.map(([rot, zoom]) =>
+  return state$.map(([rot, zoom, pos]) =>
     aEntity(
       '#camera-x-container',
       { attrs: { rotation: `0 ${rot.xdeg} 0` } },
@@ -72,7 +87,7 @@ function view(state) {
         aEntity(
           '#camera-y-container',
           { attrs: { rotation: `${rot.ydeg} 0 0` } },
-          [renderCam({ position: `0 0 ${zoom}` })]
+          [renderCamera({ position: `${pos.x} ${pos.y} ${zoom}` })]
         ),
       ]
     )

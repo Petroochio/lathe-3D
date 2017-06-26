@@ -2,8 +2,8 @@ import xs from 'xstream';
 import { section } from '@cycle/dom';
 import isolate from '@cycle/isolate';
 import {
-  compose, length, filter, lte, join,
-  map, mean, prop, split, transpose
+  any, compose, equals, length, filter, lte,
+  join, map, mean, prop, split, transpose
 } from 'ramda';
 
 import { aScene, aSky } from './utils/AframeHyperscript';
@@ -32,6 +32,16 @@ function mouseMoveProps({ movementX, movementY }) {
   };
 }
 
+function preventEventDefault(event) {
+  event.preventDefault();
+  return event;
+}
+
+function stopEventPropagation(event) {
+  event.stopPropagation();
+  return event;
+}
+
 function intent(sources) {
   const editorDOM = sources.DOM.select('#editor');
   const mouseUp$ = editorDOM.events('mouseup');
@@ -39,8 +49,8 @@ function intent(sources) {
   const mouseDown$ = editorDOM.events('mousedown');
   const mouseWheel$ = editorDOM.events('mousewheel');
   const mouseMove$ = editorDOM.events('mousemove').map(mouseMoveProps);
-  const keyDown$ = sources.DOM.select('body').events('keydown');
-  const keyUp$ = sources.DOM.select('body').events('keyup');
+  const keyDown$ = sources.DOM.select('body').events('keydown').map(preventEventDefault);
+  const keyUp$ = sources.DOM.select('body').events('keyup').map(preventEventDefault);
 
   const actions = {
     mouseUp$,
@@ -58,6 +68,7 @@ function model(actions) {
   const state = {
     altKeyState$: createKeyPress('Alt', actions.keyDown$, actions.keyUp$),
     shiftKeyState$: createKeyPress('Shift', actions.keyDown$, actions.keyUp$),
+    spaceKeyState$: createKeyPress(' ', actions.keyDown$, actions.keyUp$),
   };
   return state;
 }
@@ -79,8 +90,10 @@ function Lathe(sources) {
 
   const actions = intent(sources);
   const state = model(actions);
-  const { altKeyState$, shiftKeyState$ } = state;
-  const camera = Camera({ DOM, altKeyState$, ...actions });
+  const { altKeyState$, shiftKeyState$, spaceKeyState$ } = state;
+  const camera = Camera({ DOM, altKeyState$, spaceKeyState$, ...actions });
+
+  const ignoreKeyState$ = xs.combine(altKeyState$, spaceKeyState$).map(any(equals(true)));
 
   // Proxy bisnuz for handlers
   // Should all of this be in the movement anchor? probs
@@ -111,8 +124,8 @@ function Lathe(sources) {
   const meshProp$ = vertCollection$;
   const mesh = isolate(MeshEntity, 'Mesh')({
     ...sources,
-    altKeyState$,
     shiftKeyState$,
+    ignoreKeyState$,
     anchorUpdate$: translateAnchor.update$,
     anchorHoldState$: translateAnchor.holdState$,
     rootInput$: actions.mouseDown$,
