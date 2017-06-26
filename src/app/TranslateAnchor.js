@@ -1,6 +1,6 @@
 import xs from 'xstream';
 import sampleCombine from 'xstream/extra/sampleCombine';
-import { __, compose, nth, prop } from 'ramda';
+import { __, add, compose, nth, prop, zipWith } from 'ramda';
 import { aEntity } from './utils/AframeHyperscript';
 
 const AXIS_CONFIGS = {
@@ -43,16 +43,20 @@ function model(sources, actions) {
   const { mouseDown$ } = actions;
   const isHeld$ = xs.merge(mouseDown$.mapTo(true), rootMouseUp$.mapTo(false));
 
-  const movement$ = rootMouseMove$
+  const axisProps$ = prop$.map(compose(prop(__, AXIS_CONFIGS), prop('axis')));
+
+  const translate$ = rootMouseMove$
     .compose(sampleCombine(prop$.map(prop('axis')), cameraRotation$, isHeld$))
     .filter(nth(3))
     .map(([delta, axis, rotation]) => axisMappers[axis](delta, rotation))
-    .startWith([0, 0, 0]);
+    .startWith([0, 0, 0])
+    .map(zipWith(add));
 
-  const axisProps$ = prop$.map(compose(prop(__, AXIS_CONFIGS), prop('axis')));
+  const scale$ = xs.empty();
+  const transform$ = xs.merge(translate$, scale$);
 
   const states = {
-    movement$,
+    transform$,
     axisProps$,
     isHeld$,
   };
@@ -89,7 +93,7 @@ function TranslateAnchor(sources) {
 
   const sinks = {
     DOM: vdom$,
-    update$: state.movement$,
+    update$: state.transform$,
     holdState$: state.isHeld$,
   };
   return sinks;

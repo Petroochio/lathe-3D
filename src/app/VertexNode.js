@@ -43,8 +43,7 @@ function model(sources, actions) {
     .compose(sampleCombine(selected$))
     .filter(nth(1))
     .map(nth(0))
-    .fold(zipWith(add), initialPos)
-    .startWith(initialPos);
+    .fold((pos, transformFn) => transformFn(pos), initialPos);
 
   return {
     position$,
