@@ -1,9 +1,9 @@
 import xs from 'xstream';
 import isolate from '@cycle/isolate';
-import { any, equals, toString } from 'ramda';
+import { any, equals, prop, toString } from 'ramda';
 
 import { aEntity } from './utils/AframeHyperscript';
-import TransformAnchor from './TransformAnchor';
+import TranslateAnchor from './TranslateAnchor';
 
 function view(position$, children$) {
   return xs.combine(position$, children$)
@@ -22,29 +22,26 @@ function view(position$, children$) {
 }
 
 function TransformAnchorGroup(sources) {
-  const xAnchor = isolate(TransformAnchor, 'xAnchor')({
+  const xTranslate = isolate(TranslateAnchor, 'xAnchor')({
     ...sources,
     prop$: xs.of({ axis: 'x' }),
   });
 
-  const yAnchor = isolate(TransformAnchor, 'yAnchor')({
+  const yTranslate = isolate(TranslateAnchor, 'yAnchor')({
     ...sources,
     prop$: xs.of({ axis: 'y' }),
   });
 
-  const zAnchor = isolate(TransformAnchor, 'zAnchor')({
+  const zTranslate = isolate(TranslateAnchor, 'zAnchor')({
     ...sources,
     prop$: xs.of({ axis: 'z' }),
   });
 
-  const childrenVnode$ = xs.combine(xAnchor.DOM, yAnchor.DOM, zAnchor.DOM);
-  const update$ = xs.merge(xAnchor.update$, yAnchor.update$, zAnchor.update$);
-  const holdState$ = xs.combine(
-      xAnchor.holdState$,
-      yAnchor.holdState$,
-      zAnchor.holdState$
-    )
-    .map(any(equals(true)));
+  const anchors = [xTranslate, yTranslate, zTranslate];
+
+  const childrenVnode$ = xs.combine(...anchors.map(prop('DOM')));
+  const update$ = xs.merge(...anchors.map(prop('update$')));
+  const holdState$ = xs.combine(...anchors.map(prop('holdState$'))).map(any(equals(true)));
 
   const vdom$ = view(sources.prop$, childrenVnode$);
   const sinks = {
